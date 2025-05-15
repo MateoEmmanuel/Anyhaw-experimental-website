@@ -23,6 +23,7 @@ from backend.logout import logout_bp
 
 
 
+
 app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY")
 CORS(app)
@@ -35,9 +36,11 @@ app.add_url_rule('/verify-recovery-code', view_func=verify_reset_code, methods=[
 app.add_url_rule('/reset-password', view_func=reset_password, methods=["POST"])
 app.add_url_rule('/send-email', view_func=send_email, methods=["POST"])
 app.add_url_rule('/guest-login', view_func=guest_login, methods=["POST"])
-app.register_blueprint(cashier_settings_bp, url_prefix="/backend")
+app.register_blueprint(cashier_settings_bp, url_prefix="/backend/cashier", methods=["POST"])
 app.register_blueprint(logout_bp)
-app.register_blueprint(cashier_bp, url_prefix="/backend/cashier")
+app.register_blueprint(cashier_bp, url_prefix='/backend/cashier')
+
+
 
 @app.route("/")
 def Index_home():
