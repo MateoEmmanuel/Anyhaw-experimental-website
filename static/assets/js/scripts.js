@@ -98,7 +98,7 @@ document.getElementById("registerPassword").addEventListener("input", function (
 document.getElementById("loginBtn").addEventListener("click", async function (e) {
     e.preventDefault();  // Prevent the default form submission behavior
 
-    const usernameOrEmail = document.getElementById("username").value;  // Can be email or username
+    const usernameOrEmail = document.getElementById("username").value;
     const password = document.getElementById("password").value;
 
     if (!usernameOrEmail || !password) {
@@ -107,27 +107,50 @@ document.getElementById("loginBtn").addEventListener("click", async function (e)
     }
 
     try {
-        // Sending the login request to the backend
         const response = await fetch("/login", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ usernameOrEmail, password }),
         });
+
         const data = await response.json();
 
-        if (data.message === "Login successful") {
+        if (response.ok && data.message === "Login successful") {
             alert("Login successful!");
-            // Optionally, you can redirect the user or close the login UI
-            hide('floatingUI');
-            // window.location.href = '/dashboard'; // Redirect to a dashboard or homepage
+
+            const role = data.user.role; // Should be e.g., "Admin", "Customer", etc.
+
+            switch (role) {
+                case "Admin":
+                    window.location.href = "/admin_ui";
+                    break;
+                case "Customer":
+                    window.location.href = "/customer_ui";
+                    break;
+                case "Staff":
+                    window.location.href = "/staff_ui";
+                    break;
+                case "Cashier":
+                    window.location.href = "/backend/cashier/cashier_loader";
+                    break;
+                case "Kitchen":
+                    window.location.href = "/kitchen_ui";
+                    break;
+                case "Delivery":
+                    window.location.href = "/delivery_ui";
+                    break;
+                default:
+                    alert("Error Retrieving Account Type. Please contact support.");
+            }
         } else {
             alert("Error: " + data.message);
         }
     } catch (error) {
-        console.error(error);
+        console.error("Error:", error);
         alert("An error occurred during login.");
     }
 });
+
 
 // Function to handle guest login
 document.getElementById("guestLoginBtn").addEventListener("click", async function (e) {

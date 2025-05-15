@@ -107,8 +107,33 @@ document.addEventListener("DOMContentLoaded", function () {
             const result = await response.json();
 
             if (response.ok && result.success) {
+                const role = result.user.role; // backend returns role
                 alert("Login successful!");
-                hideAllUI();
+                // Redirect based on role
+                switch (role.toLowerCase()) {
+                    case "admin":
+                        window.location.href = "/admin_ui";
+                        break;
+                    case "customer":
+                        window.location.href = "/customer_ui";
+                        break;
+                    case "staff":
+                        window.location.href = "/staff_ui";
+                        break;
+                    case "Cashier":
+                        window.location.href = "/backend/cashier/cashier_loader";
+                        break;
+
+                    case "kitchen":
+                        window.location.href = "/kitchen_ui";
+                        break;
+                    case "delivery":
+                        window.location.href = "/delivery_ui";
+                        break;
+                    default:
+                        alert("Unknown role. Please contact support.");
+                        break;
+                }
             } else {
                 alert("Login failed. Incorrect credentials.");
                 console.error(result.message);

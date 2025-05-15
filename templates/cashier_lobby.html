@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Any-Haw Litson Manok</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/cashier_style.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <script src="{{ url_for('static', filename='assets/js/cashier_settings_scripts.js') }}" defer></script>
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='logoicon.ico') }}">
+</head>
+<body>
+    <header>
+        <div class="logo-title">
+            <a href="cashier_lobby">
+                <img src="{{ url_for('static', filename='assets/images/navbar_logo.png') }}" alt="Any-Haw Logo">
+            </a>
+        </div>
+        <nav>
+            <a href="{{ url_for('cashier_bp.cashier_loader') }}">Cashier System</a>  <!-- ✅ CORRECT -->
+            <a href="#" id="aboutUsLink">ABOUT US</a>
+            <div class="user-profile">
+                <img src="{{ url_for('cashier_bp.profile_pic') }}" alt="Profile Picture" class="profile-pic">
+                <span class="username">{{ username }}</span>
+            </div>
+            <div class="settings-dropdown">
+                <button class="settings-btn" onclick="toggleSettings()">⚙</button>
+                <div class="settings-panel" id="settingsPanel">
+                    <a href="#" id="editaccount">Edit Account Info</a>
+                    <a href="#" id="changepassword">Change Password</a>
+                    <a href="#" id="updateprofilepic">Edit Profile</a>
+                    <form action="{{ url_for('logout_bp.logout_sys') }}" method="POST" style="display: inline;">
+                        <button type="submit" class="logout-link">Logout</button>
+                    </form>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <section class="main-section"></section>
+
+    <!-- Dark Background Overlay -->
+    <div id="overlay" class="overlay" style="display: none;"></div>
+
+    <!-- Floating Edit Account Info UI -->
+    <div id="editaccountUI" class="floating-ui" style="display: none;">
+        <div class="floating-inner">
+            <h2>Account Info</h2>
+            <input type="text" id="firstname_txt" placeholder="Firstname" required disabled class="custom-disabled">
+            <input type="text" id="middlename_txt" placeholder="Middlename" required disabled class="custom-disabled">
+            <input type="text" id="lastname_txt" placeholder="Lastname" required disabled class="custom-disabled">
+            <input type="text" id="Position_txt" placeholder="Your Position" disabled class="custom-disabled">
+            <input type="text" id="email_txt" placeholder="Email" required disabled class="custom-disabled">
+            <input type="text" id="contactnumber_txt" placeholder="Contact Number" required disabled class="custom-disabled">
+
+            <div class="button-row">
+                <button id="cancelBtn" class="cancel-btn" style="display: none;">Cancel</button>
+                <button id="editupdate" class="enablesave-btn">Edit</button>
+            </div>
+        </div>
+    </div>
+
+
+</body>
+</html>

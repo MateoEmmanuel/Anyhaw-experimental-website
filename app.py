@@ -17,6 +17,10 @@ from backend.forgotpassword import send_email
 from backend.forgotpassword import verify_reset_code
 from backend.forgotpassword import reset_password
 from backend.guest_login import guest_login
+from backend.cashier.cashier_settings import cashier_settings_bp
+from backend.cashier.cashier_loader import cashier_bp
+from backend.logout import logout_bp
+
 
 
 app = Flask(__name__)
@@ -31,10 +35,12 @@ app.add_url_rule('/verify-recovery-code', view_func=verify_reset_code, methods=[
 app.add_url_rule('/reset-password', view_func=reset_password, methods=["POST"])
 app.add_url_rule('/send-email', view_func=send_email, methods=["POST"])
 app.add_url_rule('/guest-login', view_func=guest_login, methods=["POST"])
-
+app.register_blueprint(cashier_settings_bp, url_prefix="/backend")
+app.register_blueprint(logout_bp)
+app.register_blueprint(cashier_bp, url_prefix="/backend/cashier")
 
 @app.route("/")
-def home():
+def Index_home():
     # Check if a user is already logged in by checking session
     if 'user_id' in session and 'role' in session:
         role = session['role']
@@ -45,8 +51,8 @@ def home():
             return redirect(url_for("customer_ui")) # custoemr main UI lobby
         elif role == "staff":
             return redirect(url_for("staff_ui")) # staff main UI lobby
-        elif role == "cashier":
-            return redirect(url_for("cashier_ui")) # cashier main UI lobby
+        elif role == "Cashier":
+            return redirect(url_for("cashier_bp.cashier_loader"))  # cashier main UI lobby
         elif role == "kitchen":
             return redirect(url_for("kitchen_ui")) # kitchen main UI lobby
         elif role == "delivery":
@@ -59,7 +65,9 @@ def home():
         return render_template("index.html")  # This will render index.html from the templates folder
 
 
-
+@app.route("/customer_ui")
+def customer_ui():
+    return render_template("customer_ui.html")
 
 
 if __name__ == "__main__":

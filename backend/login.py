@@ -1,10 +1,10 @@
-from flask import request, jsonify
+from flask import request, jsonify, session
 from backend.dbconnection import create_connection
 import bcrypt
 
 def login():
     data = request.json
-    username_or_email = data.get("usernameOrEmail")  # Get the value for email or username
+    username_or_email = data.get("usernameOrEmail")
     password = data.get("password")
 
     conn = create_connection()
@@ -12,36 +12,40 @@ def login():
         return jsonify({"message": "Database connection failed"}), 500
 
     cursor = conn.cursor(dictionary=True)
-    
-    # First, try querying the restaurant_accounts table
-    if "@" in username_or_email:  # If it's an email
+
+    user = None
+    role = None
+
+    # Check restaurant_accounts first
+    if "@" in username_or_email:
         cursor.execute("SELECT * FROM restaurant_accounts WHERE email = %s", (username_or_email,))
-    else:  # If it's a username
+    else:
         cursor.execute("SELECT * FROM restaurant_accounts WHERE username = %s", (username_or_email,))
     
-    user = cursor.fetchone()
+    result = cursor.fetchone()
+    if result:
+        user = result
+        role = result["account_type"].capitalize()  # e.g., 'Cashier', 'Admin', etc.
 
-    # If no user found in restaurant_accounts, check the customer_accounts table
+    # If not found, check customer_accounts
     if not user:
-        if "@" in username_or_email:  # If it's an email
+        if "@" in username_or_email:
             cursor.execute("SELECT * FROM customer_accounts WHERE email = %s", (username_or_email,))
-        else:  # If it's a username
+        else:
             cursor.execute("SELECT * FROM customer_accounts WHERE customer_username = %s", (username_or_email,))
         
-        user = cursor.fetchone()
+        result = cursor.fetchone()
+        if result:
+            user = result
+            role = "Customer"  # Explicitly assign customer role
 
     conn.close()
 
-    # Check if a user was found and if the password is correct
     if user and bcrypt.checkpw(password.encode("utf-8"), user["password"].encode("utf-8")):
-        # Determine the role
-        if "restaurant_accounts" in user:
-            # This user is from restaurant_accounts, use account_type as role
-            role = user["account_type"]
-        else:
-            # This user is from customer_accounts, role is "customer"
-            role = "customer"
-        
+        # Store session for redirection handling if needed
+        session["user_id"] = user.get("account_id") or user.get("customer_id")
+        session["role"] = role
+
         return jsonify({
             "message": "Login successful",
             "user": {
