@@ -20,6 +20,7 @@ from backend.guest_login import guest_login
 from backend.cashier.cashier_settings import cashier_settings_bp
 from backend.cashier.cashier_loader import cashier_bp
 from backend.logout import logout_bp
+from backend.cashier.cashier_system import cashier_system_bp
 
 
 
@@ -39,6 +40,7 @@ app.add_url_rule('/guest-login', view_func=guest_login, methods=["POST"])
 app.register_blueprint(cashier_settings_bp, url_prefix="/backend/cashier", methods=["POST"])
 app.register_blueprint(logout_bp)
 app.register_blueprint(cashier_bp, url_prefix='/backend/cashier')
+app.register_blueprint(cashier_system_bp, url_prefix='/backend/cashier_system')
 
 
 

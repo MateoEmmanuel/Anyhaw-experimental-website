@@ -9,6 +9,17 @@ const hide = (id) => {
     document.getElementById('overlay').style.display = 'none';
 };
 
+    function showUI(id) {
+        overlay.style.display = "block";
+        document.querySelectorAll(".floating-ui").forEach(el => el.style.display = "none");
+        document.getElementById(id).style.display = "block";
+    }
+
+    function hideAllUI() {
+        overlay.style.display = "none";
+        document.querySelectorAll(".floating-ui").forEach(el => el.style.display = "none");
+    }
+
 document.getElementById('loginLink').addEventListener('click', () => show('floatingUI'));
 document.getElementById('aboutUsLink').addEventListener('click', () => {
     document.getElementById('aboutUsUI').style.display = 'block';
@@ -379,3 +390,14 @@ document.addEventListener("DOMContentLoaded", function () {
         repeatNewPasswordInput.value = "";  // Clear inputs
     });
 });
+
+    // Show the About Us content when clicked
+    document.getElementById('aboutUsLink').addEventListener('click', function () {
+        fetch('static/assets/aboutus.txt')
+            .then(response => response.text())  // Read the content of the file
+            .then(data => {
+                // Use innerHTML to insert HTML content (including <strong> tags) into the About Us UI
+                document.getElementById('aboutUsContent').innerHTML = data;  // This allows <strong> to be rendered as bold
+                document.getElementById('aboutUsUI').style.display = 'block';  // Show the floating UI
+            });
+    });

@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Any-Haw Litson Manok</title>
+    <script>
+        const aboutUsFilePath = "{{ url_for('static', filename='assets/aboutus.txt') }}";
+    </script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/cashier_system_style.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <script src="{{ url_for('static', filename='assets/js/cashier_system_scripts.js') }}" defer></script>
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='logoicon.ico') }}">
+</head>
+<body>
+    <header>
+        <div class="logo-title">
+            <a href="cashier_lobby">
+                <img src="{{ url_for('static', filename='assets/images/navbar_logo.png') }}" alt="Any-Haw Logo">
+            </a>
+        </div>
+        <nav>
+            
+        </nav>
+    </header>
+
+    <section class="main-section"></section>
+</body>
+</html>

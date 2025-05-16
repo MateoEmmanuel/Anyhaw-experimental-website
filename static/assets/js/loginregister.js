@@ -42,12 +42,14 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("forgotCloseBtn").onclick = hideAllUI;
     document.getElementById("recoveryCloseBtn").onclick = hideAllUI;
 
-    document.getElementById("aboutUsLink").addEventListener("click", function () {
-        fetch("assets/aboutus.txt")
-            .then(response => response.text())
+    // Show the About Us content when clicked
+    document.getElementById('aboutUsLink').addEventListener('click', function () {
+        fetch('/static/assets/localfile/aboutus.txt')
+            .then(response => response.text())  // Read the content of the file
             .then(data => {
-                aboutUsContent.innerHTML = data;
-                aboutUsUI.style.display = "block";
+                // Use innerHTML to insert HTML content (including <strong> tags) into the About Us UI
+                document.getElementById('aboutUsContent').innerHTML = data;  // This allows <strong> to be rendered as bold
+                document.getElementById('aboutUsUI').style.display = 'block';  // Show the floating UI
             });
     });
 

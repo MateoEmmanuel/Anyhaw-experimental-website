@@ -3,6 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <title>Any-Haw Litson Manok</title>
+    <script>
+        const aboutUsFilePath = "{{ url_for('static', filename='assets/aboutus.txt') }}";
+    </script>
     <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/cashier_style.css') }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
@@ -17,8 +20,8 @@
             </a>
         </div>
         <nav>
-            <a href="{{ url_for('cashier_bp.cashier_loader') }}">Cashier System</a>  <!-- ✅ CORRECT -->
-            <a href="#" id="aboutUsLink">ABOUT US</a>
+            <a href="#" id="cashiersystem_btn">Cashier System</a>  <!-- ✅ CORRECT -->
+            <a href="#" id="aboutUsLink_cashier">ABOUT US</a>
             <div class="user-profile">
                 <img src="{{ url_for('cashier_bp.profile_pic') }}" alt="Profile Picture" class="profile-pic">
                 <span id="username" class="username">Loading...</span>
@@ -27,9 +30,9 @@
             <div class="settings-dropdown">
                 <button class="settings-btn" onclick="toggleSettings()">⚙</button>
                 <div class="settings-panel" id="settingsPanel">
-                    <a href="#" id="editaccount_button">Edit Account Info</a>
+                    <a href="#" id="updateprofilepic_button">Profile Picture</a>
+                    <a href="#" id="editaccount_button">Account Info</a>
                     <a href="#" id="changepassword_button">Change Password</a>
-                    <a href="#" id="updateprofilepic">Edit Profile</a>
                     <form action="{{ url_for('logout_bp.logout_sys') }}" method="POST" style="display: inline;">
                         <button type="submit" class="logout-link">Logout</button>
                     </form>
@@ -41,12 +44,27 @@
     <section class="main-section"></section>
 
     <!-- Dark Background Overlay -->
-    <div id="overlay" class="overlay" style="display: none;"></div>
+    <div id="overlay" style="display: none;"></div>
+
+    <!-- Floating About Us UI -->
+    <div id="aboutUsUI_cashier" class="floating-ui aboutus-ui" style="display: none;">
+        <div class="floating-aboutus-inner">
+            <div id="aboutUsContent" class="aboutus-content">
+                <p>We are Any-Haw, serving the best Litson Manok in town since 2020!</p>
+            </div>
+            <button class="white-close-btn" id="closeAboutUsBtn">X</button>
+        </div>
+    </div>
 
     <!-- Floating Edit Account Info UI -->
     <div id="editaccountUI" class="floating-ui" style="display: none;">
         <div class="floating-inner">
             <h2>Account Info</h2>
+
+            <div class="accountusername-group">
+                <h3>Username:</h3>
+                <input type="text" id="username_txt" placeholder="Username" required disabled class="custom-disabled">
+            </div>
 
             <div class="accountname-group">
                 <h3>Name:</h3>
@@ -72,7 +90,7 @@
 
             <div class="button-row">
                 <button id="cancelBtn" class="cancel-btn" style="display: none;">Cancel</button>
-                <button id="editupdate" class="enablesave-btn">Edit</button>
+                <button id="editupdate" class="enablesave-btn">Edit Account</button>
             </div>
 
             <button id="closeBtn" class="close-btn">X</button>
@@ -109,6 +127,23 @@
                 <button id="updatepassword_staffbtn" class="updatepassword-btn">Update Password</button>
             </div>
             <button id="updatecloseBtn" class="close-btn">X</button>
+        </div>
+    </div>
+
+    <!-- Floating Update Profile Picture UI -->
+    <div id="updateprofilepicUI" class="floating-ui" style="display: none;">
+        <div class="floating-inner">
+            <h2>Update Profile Picture</h2>
+            <div class="profile-pic-wrapper">
+                <div class="profile-pic-preview">
+                    <img src="{{ url_for('cashier_bp.profile_pic') }}" alt="Profile Picture" id="profile_pic_preview">
+                </div>
+                <form id="updateprofilepic_form" enctype="multipart/form-data" class="upload-controls">
+                    <input type="file" id="profile_pic_input" accept="image/*" required>
+                    <button type="submit" id="updateprofilepic_btn" class="updateprofilepic-btn">Save New Profile Picture</button>
+                </form>
+                <button id="updateprofilepic_closeBtn" class="close-btn">X</button>
+            </div>
         </div>
     </div>
 

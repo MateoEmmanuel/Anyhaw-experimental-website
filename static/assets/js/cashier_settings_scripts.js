@@ -7,11 +7,13 @@ function toggleSettings() {
 }
 
 function show(id) {
+    overlay.style.display = "block";
     document.getElementById(id).style.display = "block";
     document.getElementById("overlay").style.display = "block";
 }
 
 function hide(id) {
+    overlay.style.display = "none";
     document.getElementById(id).style.display = "none";
     document.getElementById("overlay").style.display = "none";
 }
@@ -46,13 +48,13 @@ document.addEventListener("DOMContentLoaded", function () {
             .then(response => response.json())
             .then(data => {
                 if (data.error) return console.error(data.error);
-
-                document.getElementById("firstname_txt").value = data.first_name || '';
-                document.getElementById("middlename_txt").value = data.middle_name || '';
-                document.getElementById("lastname_txt").value = data.last_name || '';
-                document.getElementById("position_txt").value = data.position_name || '';
-                document.getElementById("email_txt").value = data.email || '';
-                document.getElementById("contactnumber_txt").value = data.contact_number || '';
+                document.getElementById("username_txt").value = data.username || 'Unknown';
+                document.getElementById("firstname_txt").value = data.first_name || 'Unknown';
+                document.getElementById("middlename_txt").value = data.middle_name || 'Unknown';
+                document.getElementById("lastname_txt").value = data.last_name || 'Unknown';
+                document.getElementById("position_txt").value = data.position_name || 'Unknown';
+                document.getElementById("email_txt").value = data.email || 'Unknown';
+                document.getElementById("contactnumber_txt").value = data.contact_number || 'Unknown';
             })
             .catch(error => console.error("Error fetching account info:", error));
     });
@@ -71,6 +73,7 @@ document.addEventListener("DOMContentLoaded", function () {
         if (!isEditing) {
             // Enable edit mode
             originalValues = {
+                username: document.getElementById("username_txt").value,
                 firstname: document.getElementById("firstname_txt").value,
                 middlename: document.getElementById("middlename_txt").value,
                 lastname: document.getElementById("lastname_txt").value,
@@ -84,12 +87,13 @@ document.addEventListener("DOMContentLoaded", function () {
                 input.classList.remove("custom-disabled");
             });
 
-            editUpdateBtn.textContent = "Update";
+            editUpdateBtn.textContent = "Save Changes";
             cancelBtn.style.display = "inline-block";
             isEditing = true;
         } else {
             // Submit changes
             const data = {
+                username: document.getElementById("username_txt").value,
                 firstname: document.getElementById("firstname_txt").value,
                 middlename: document.getElementById("middlename_txt").value,
                 lastname: document.getElementById("lastname_txt").value,
@@ -97,7 +101,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 contactnumber: document.getElementById("contactnumber_txt").value
             };
 
-            fetch('/backend/cashier/update_account', {
+            fetch('/backend/cashier/update_account_info', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)
@@ -106,19 +110,21 @@ document.addEventListener("DOMContentLoaded", function () {
                     alert("Account updated successfully!");
                 } else {
                     alert("Update failed.");
+                    document.getElementById("username_txt").value = originalValues.username;
                     document.getElementById("firstname_txt").value = originalValues.firstname;
                     document.getElementById("middlename_txt").value = originalValues.middlename;
                     document.getElementById("lastname_txt").value = originalValues.lastname;
                     document.getElementById("position_txt").value = originalValues.position;
                     document.getElementById("email_txt").value = originalValues.email;
                     document.getElementById("contactnumber_txt").value = originalValues.contact;
+
                 }
 
                 inputs.forEach(input => {
                     input.disabled = true;
                     input.classList.add("custom-disabled");
                 });
-                editUpdateBtn.textContent = "Edit";
+                editUpdateBtn.textContent = "Edit Account";
                 cancelBtn.style.display = "none";
                 isEditing = false;
             });
@@ -126,6 +132,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     cancelBtn.addEventListener("click", () => {
+        document.getElementById("username_txt").value = originalValues.username;
         document.getElementById("firstname_txt").value = originalValues.firstname;
         document.getElementById("middlename_txt").value = originalValues.middlename;
         document.getElementById("lastname_txt").value = originalValues.lastname;
@@ -215,7 +222,12 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-
+    // Update Profile Picture
+    updateprofilepic_button.addEventListener("click", (e) => {
+        e.preventDefault();
+        show("updateprofilepicUI");
+    });
+    document.getElementById("updatepicturecloseBtn").onclick = hideAllUI;
 
     // Logout
     document.getElementById('logout').addEventListener('click', function (e) {
@@ -232,3 +244,63 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 });
+
+document.getElementById("updateprofilepic_form").addEventListener("submit", function (e) {
+    e.preventDefault();
+
+    const fileInput = document.getElementById("profile_pic_input");
+    const file = fileInput.files[0];
+
+    if (!file) {
+        alert("Please select an image.");
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append("profilePic", file);
+
+    fetch("/update_profile_picture", {
+        method: "POST",
+        body: formData
+    })
+    .then(async response => {
+        const data = await response.json();
+        if (response.ok) {
+            alert("Profile picture updated!");
+            location.reload();  // Optional: to reflect new picture
+        } else {
+            alert("Failed: " + (data.error || "Unknown error."));
+        }
+    })
+    .catch(error => {
+        console.error("Error uploading profile picture:", error);
+        alert("An error occurred while uploading.");
+    });
+});
+
+document.getElementById("updateprofilepic_closeBtn").onclick = hideAllUI;
+document.getElementById('aboutUsLink_cashier').addEventListener('click', () => {
+    document.getElementById('aboutUsUI_cashier').style.display = 'block';
+});
+    // Show the About Us content when clicked
+    document.getElementById('aboutUsLink_cashier').addEventListener('click', function () {
+        overlay.style.display = "block";
+        fetch(aboutUsFilePath)
+            .then(response => {
+                if (!response.ok) throw new Error('File not found');
+                return response.text();
+            })
+            .then(data => {
+                document.getElementById('aboutUsContent').innerHTML = data;
+                document.getElementById('aboutUsUI_cashier').style.display = 'block';
+            })
+            .catch(error => {
+                console.error('Error loading About Us content:', error);
+            });
+    });
+document.getElementById('closeAboutUsBtn').onclick = hideAllUI;
+
+document.getElementById('cashiersystem_btn').addEventListener('click', function () {
+    window.location.href = '/backend/cashier_system/cashier_system_loader';
+});
+
