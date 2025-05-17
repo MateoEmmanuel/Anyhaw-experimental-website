@@ -252,3 +252,109 @@ body, html {
   overflow-x: hidden;
   padding: 15px;
 }
+
+/* payment module */
+.payment-row {
+  margin-bottom: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.payment-row label {
+  flex: 1 0 140px;
+  font-weight: bold;
+}
+
+.payment-row input, 
+.payment-row select, 
+.payment-row output {
+  flex: 1 1 auto;
+  padding: 0.4rem;
+  font-size: 1rem;
+}
+
+.pay-btn {
+  background-color: #ff6600;
+  border: none;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  font-size: 1.2rem;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.pay-btn:hover {
+  background-color: #e65c00;
+}
+
+.payment-container {
+  display: flex;
+  gap: 30px;
+  margin-top: 20px;
+}
+
+.order-list {
+  flex: 1;
+  background-color: #f9f9f9;
+  padding: 15px;
+  border-radius: 10px;
+  box-shadow: 0 0 5px rgba(0,0,0,0.1);
+}
+
+.order-list ul {
+  list-style: none;
+  padding: 0;
+}
+
+.payment-form {
+  flex: 1;
+  background-color: #fefefe;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 0 5px rgba(0,0,0,0.1);
+}
+
+.payment-row {
+  margin-bottom: 15px;
+}
+
+.pay-btn {
+  padding: 10px 20px;
+  background-color: #2196F3;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.main-content-inner {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    gap: 20px;
+}
+
+.order-details-section {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px;
+    background: #fff4e7;
+    border-radius: 10px;
+}
+
+.payment-module {
+    flex: 1;
+    padding: 20px;
+    background: #fff4e7;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.order-card {
+    background: #fff4e7;
+    padding: 12px;
+    border: 1px solid #ccc;
+    margin-bottom: 10px;
+    border-radius: 8px;
+}

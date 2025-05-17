@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <title>Any-Haw Litson Manok</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/cashier_system_style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/cashier_orderque_style.css') }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-    <script src="{{ url_for('static', filename='assets/js/cashier_system_scripts.js') }}" defer></script>
+    <script src="{{ url_for('static', filename='assets/js/cashier_orderque_scripts.js') }}" defer></script>
     <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='logoicon.ico') }}">
 </head>
 <body>
@@ -49,7 +49,46 @@
 
         <div class="main-content">
             <div class="main-content-inner">
-                <p>blacnk space</p>
+                {% for order in orders %}
+                <div class="order-card">
+                    <h2>Transaction ID: {{ order.transaction_id }}</h2>
+                    <p><strong>Table:</strong> {{ order.table_number }}</p>
+                    <p><strong>Status:</strong> {{ order.order_status }}</p>
+                    <table class="order-items-table">
+                        <thead>
+                            <tr>
+                                <th>Item ID</th>
+                                <th>Type</th>
+                                <th>Quantity</th>
+                                <th>Price per Item</th>
+                                <th>Total Price</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in order['items'] %}
+                            <tr>
+                                <td>{{ item.item_id }}</td>
+                                <td>{{ item.Item_Type }}</td>
+                                <td>{{ item.Quantity }}</td>
+                                <td>₱{{ "%.2f"|format(item.Price_Per_Item) }}</td>
+                                <td>₱{{ "%.2f"|format(item.Total_Item_Price) }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+
+                    <!-- 🚀 Proceed to Payment Button -->
+                    <div class="order-card">
+                        <!-- Your other order info -->
+                        <input type="hidden" class="order-id" value="{{ order.order_id }}">
+                        <button class="proceedtopayment-btn" onclick="proceedToPayment(this)">Proceed to Payment</button>
+                    </div>
+
+
+                    <hr>
+                </div>
+                {% endfor %}
+
             </div>
         </div>
     </section>

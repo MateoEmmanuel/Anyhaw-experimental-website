@@ -283,6 +283,7 @@ document.getElementById('aboutUsLink_cashier').addEventListener('click', () => {
     document.getElementById('aboutUsUI_cashier').style.display = 'block';
 });
     // Show the About Us content when clicked
+    
     document.getElementById('aboutUsLink_cashier').addEventListener('click', function () {
         overlay.style.display = "block";
         fetch(aboutUsFilePath)
