@@ -1,0 +1,218 @@
+body, html {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    height: 100%;
+    font-family: 'Roboto', sans-serif;
+}
+
+header {
+    background: #ff6600;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 30px;
+    color: white;
+}
+
+.logo-title img {
+    height: 60px;
+}
+.logo-title a {
+    display: inline-block;
+    cursor: pointer;
+}
+
+nav {
+    display: flex;
+    align-items: center;
+    gap: 25px; /* increased slightly from 20px */
+}
+
+nav a {
+    color: white;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.search-box {
+    background: #ffa163;
+    padding: 5px;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+}
+
+.search-box input {
+    border: none;
+    outline: none;
+    background: transparent;
+    padding: 5px;
+    color: black;
+}
+
+.search-icon {
+    font-size: 16px;
+    margin-left: 5px;
+}
+
+.main-section {
+    background-image: url("../images/background.png");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    width: 100vw;
+    height: 100vh;
+}
+
+/* Background overlay */
+.overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.6);
+    z-index: 999;
+}
+
+/* Floating UI container with white border */
+.floating-ui {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    padding: 10px; /* thickness of the white border */
+    background-color: white; /* outer border */
+    border-radius: 14px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+    z-index: 1000;
+}
+
+/* Inner colored box */
+.floating-inner {
+    background-color: #fff4e7;
+    padding: 25px;
+    border-radius: 10px;
+    position: relative;
+    box-sizing: border-box;
+}
+
+.floating-inner h2 {
+    margin-top: 0;
+    text-align: center;
+}
+
+.floating-inner input[type="text"],
+.floating-inner input[type="password"],
+.floating-inner input[type="email"] {
+    width: 100%;
+    padding: 10px;
+    margin: 8px 0;
+    box-sizing: border-box;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+}
+
+.forgot-password {
+    text-align: right;
+    font-size: 0.9em;
+    margin-bottom: 10px;
+}
+
+.forgot-password a {
+    color: #007bff;
+    text-decoration: none;
+}
+
+.forgot-password a:hover {
+    text-decoration: underline;
+}
+
+.button-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.button-group button {
+    padding: 10px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+#loginBtn,
+#guestBtn,
+#switchToRegisterBtn,
+#guestLoginBtn,
+#backToLoginBtn,
+#registerBtn,
+#backToLoginFromRegisterBtn,
+#cancelNewPasswordBtn,
+#confirmNewPasswordBtn,
+#sendCodeBtn,
+#confirmRecoveryBtn,
+#cancelRecoveryBtn {
+    background-color: #ff6600;
+    color: white;
+}
+
+#loginBtn:hover,
+#guestBtn:hover,
+#switchToRegisterBtn:hover,
+#guestLoginBtn:hover,
+#backToLoginBtn:hover,
+#registerBtn:hover,
+#backToLoginFromRegisterBtn:hover,
+#cancelNewPasswordBtn:hover,
+#confirmNewPasswordBtn:hover,
+#sendCodeBtn:hover,
+#confirmRecoveryBtn:hover,
+#cancelRecoveryBtn:hover {
+    background-color: #e65500;
+}
+
+.close-btn,
+.white-close-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: transparent;
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.white-close-btn {
+    color: white;
+    background-color: transparent;
+    font-size: 22px;
+    font-weight: 900;
+}
+
+.aboutus-ui .floating-aboutus-inner {
+    background-color: #ff6600;
+    padding: 20px;
+    border-radius: 10px;
+    color: white;
+}
+
+.rules-list {
+    list-style: none;
+    padding-left: 0;
+    font-size: 0.9em;
+}
+
+.rules-list li {
+    margin: 4px 0;
+}
+
+/* Scrollbar hidden */
+body::-webkit-scrollbar {
+    display: none;
+}
