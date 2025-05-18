@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <title>Any-Haw Litson Manok</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/cashier_system_style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/cashier_orderstatus_style.css') }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-    <script src="{{ url_for('static', filename='assets/js/cashier_system_scripts.js') }}" defer></script>
+    <script src="{{ url_for('static', filename='assets/js/cashier_orderstatus_script.js') }}" defer></script>
     <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='logoicon.ico') }}">
 </head>
 <body>
@@ -49,7 +49,41 @@
 
         <div class="main-content">
             <div class="main-content-inner">
-                <p>blacnk space</p>
+                {% if orders %}
+                    {% for order in orders %}
+                        <div class="order-card">
+                            <h2>Transaction ID: {{ order.transaction_id }}</h2>
+                            <p><strong>Table:</strong> {{ 'Delivery' if order.order_type == 'delivery' else order.table_number }}</p>
+                            <p><strong>Status:</strong> {{ order.order_status }}</p>
+                            <p><strong>Order Time:</strong> {{ order.order_time }}</p>
+
+                            <table class="order-items-table">
+                                <thead>
+                                    <tr>
+                                        <th>Item Name</th>
+                                        <th>Quantity</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for item in order['items'] %}
+                                    <tr>
+                                        <td>{{ item.Item_Name }}</td>
+                                        <td>{{ item.Quantity }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+
+                            <!-- Move hidden inputs and button here -->
+                            <input type="hidden" id="orderId" value="{{ order.order_ID }}">
+                            <button class="servefood-btn" onclick="servethefood(this)">Serve Food</button>
+
+                            <hr>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="noqueue" >No More Orders In Preparation.</p>
+                {% endif %}
             </div>
         </div>
     </section>
