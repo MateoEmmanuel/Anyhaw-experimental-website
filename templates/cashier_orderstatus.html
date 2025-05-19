@@ -29,12 +29,10 @@
                     <ul class="sub-options">
                         <li><a href="#" id="manualordering_btn">Manual Ordering</a></li>
                         <li><a href="#" id="orderque_btn">Order Queue</a></li>
-                        <li><a href="#" id="orderstatus_btn">Order Status</a></li>
+                        <li><a href="#" id="orderpreparationstatus_btn">Order Preparation Status</a></li>
+                        <li><a href="#" id="orderserved_btn">Served Order</a></li>
                         <li><a href="#"id="deliverystatus_btn">Delivery Status</a></li>
                     </ul>
-                </li>
-                <li class ="options-item">
-                    <a href="#" id="loadpaymentmodule_btn">Payment Module</a>
                 </li>
                 <li class="options-item">
                     <a href="#" id="transactionhistory_btn">Transaction History</a>
@@ -53,6 +51,7 @@
                     {% for order in orders %}
                         <div class="order-card">
                             <h2>Transaction ID: {{ order.transaction_id }}</h2>
+                            <h2>Order ID: {{ order.order_id }}</h2>
                             <p><strong>Table:</strong> {{ 'Delivery' if order.order_type == 'delivery' else order.table_number }}</p>
                             <p><strong>Status:</strong> {{ order.order_status }}</p>
                             <p><strong>Order Time:</strong> {{ order.order_time }}</p>
@@ -73,11 +72,10 @@
                                     {% endfor %}
                                 </tbody>
                             </table>
-
-                            <!-- Move hidden inputs and button here -->
-                            <input type="hidden" id="orderId" value="{{ order.order_ID }}">
-                            <button class="servefood-btn" onclick="servethefood(this)">Serve Food</button>
-
+                            <div class="order-card">
+                                <input type="hidden" class="orderId" value="{{ order.order_id }}">
+                                <button class="servefood-btn" onclick="servethefood(this)">Serve The Food</button>
+                            </div>
                             <hr>
                         </div>
                     {% endfor %}
@@ -97,6 +95,16 @@
             <button class="white-close-btn" id="closeAboutUsBtn">X</button>
         </div>
     </div>
+
+    <div id="serveConfirmModal" class="modal">
+        <div class="modal-content">
+            <p>Do you want to serve this order?</p>
+            <button id="serveYesBtn">Yes</button>
+            <button id="serveNoBtn">No</button>
+        </div>
+    </div>
+    <div id="serveModalOverlay" class="modal-overlay"></div>
+
 
 </body>
 </html>

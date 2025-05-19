@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <title>Any-Haw Litson Manok</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/cashier_orderque_style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/cashier_served_style.css') }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-    <script src="{{ url_for('static', filename='assets/js/cashier_orderque_scripts.js') }}" defer></script>
+    <script src="{{ url_for('static', filename='assets/js/cashier_served_scripts.js') }}" defer></script>
     <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='logoicon.ico') }}">
 </head>
 <body>
@@ -69,19 +69,10 @@
                                     <tr>
                                         <td>{{ item.Item_Name }}</td>
                                         <td>{{ item.Quantity }}</td>
-                                        <td>₱{{ "%.2f"|format(item.Price_Per_Item) }}</td>
-                                        <td>₱{{ "%.2f"|format(item.Quantity * item.Price_Per_Item) }}</td>
                                     </tr>
                                     {% endfor %}
                                 </tbody>
                             </table>
-
-                            <div class="order-card">
-                                <input type="hidden" class="order-id" value="{{ order.order_id }}">
-                                <button class="proceedtopayment-btn" onclick="proceedToPayment(this)">Proceed to Payment</button>
-                            </div>
-
-                            <hr>
                         </div>
                     {% endfor %}
                 {% else %}

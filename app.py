@@ -49,7 +49,6 @@ app.register_blueprint(cashier_payment_bp, url_prefix='/backend/cashier')
 app.register_blueprint(cashier_orderstatus_bp, url_prefix='/backend/cashier')
 
 
-
 @app.route("/")
 def Index_home():
     # Check if a user is already logged in by checking session

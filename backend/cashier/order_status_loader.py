@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for
 from backend.dbconnection import create_connection
 
-cashier_orderstatus_bp = Blueprint('cashier_orderstatus', __name__, url_prefix='/cashier')
+cashier_orderstatus_bp = Blueprint('cashier_orderstatus', __name__)
 
 @cashier_orderstatus_bp.route('/order_status_loader')
 def order_queue_loader():
@@ -14,7 +14,7 @@ def order_queue_loader():
             SELECT order_ID, transaction_id, table_number, order_status, order_type, order_time 
             FROM processing_orders 
             WHERE order_status = 'preparing'
-            ORDER BY order_ID DESC
+            ORDER BY order_time DESC
         """)
         orders_data = cursor.fetchall()
 
@@ -83,7 +83,7 @@ def order_queue_loader():
         cursor.close()
         conn.close()
 
-@cashier_orderstatus_bp.route('/update_orderstatus', methods=['POST'])
+@cashier_orderstatus_bp.route('/order_status_update', methods=['POST'])
 def update_orderstatus_serve():
     from flask import jsonify
     data = request.get_json()
