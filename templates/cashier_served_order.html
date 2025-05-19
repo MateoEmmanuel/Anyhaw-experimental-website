@@ -29,7 +29,7 @@
                     <ul class="sub-options">
                         <li><a href="#" id="manualordering_btn">Manual Ordering</a></li>
                         <li><a href="#" id="orderque_btn">Order Queue</a></li>
-                        <li><a href="#" id="orderpreparationstatus_btn">Order Preparation Status</a></li>
+                        <li><a href="#" id="orderpreparationstatus_btn">Order Prep Status</a></li>
                         <li><a href="#" id="orderserved_btn">Served Order</a></li>
                         <li><a href="#"id="deliverystatus_btn">Delivery Status</a></li>
                     </ul>
@@ -51,7 +51,8 @@
                     {% for order in orders %}
                         <div class="order-card">
                             <h2>Transaction ID: {{ order.transaction_id }}</h2>
-                            <p><strong>Table:</strong> {{ 'Delivery' if order.order_type == 'delivery' else order.table_number }}</p>
+                            <p><strong>Table:</strong> {{ order.table_number }}</p>
+                            <p><strong>Order Type:</strong> {{ order.order_type }}</p>
                             <p><strong>Status:</strong> {{ order.order_status }}</p>
                             <p><strong>Order Time:</strong> {{ order.order_time }}</p>
 
@@ -76,7 +77,7 @@
                         </div>
                     {% endfor %}
                 {% else %}
-                    <p class="noqueue" >No More Orders In Queue.</p>
+                    <p class="noqueue" >No Served Order This Past 12 Hours.</p>
                 {% endif %}
             </div>
         </div>

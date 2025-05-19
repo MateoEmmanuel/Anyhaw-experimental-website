@@ -77,3 +77,7 @@ document.getElementById('orderque_btn').addEventListener('click', function () {
 document.getElementById('orderpreparationstatus_btn').addEventListener('click', function () {
     window.location.href = '/backend/cashier/order_status_loader';
 });
+
+document.getElementById('orderserved_btn').addEventListener('click', function () {
+    window.location.href = '/backend/cashier/served_order_loader';
+});

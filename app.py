@@ -24,6 +24,7 @@ from backend.cashier.cashier_system import cashier_system_bp
 from backend.cashier.cashier_orderque_loader import cashier_orderqueue_bp
 from backend.cashier.payment_loader import cashier_payment_bp
 from backend.cashier.order_status_loader import cashier_orderstatus_bp
+from backend.cashier.cashier_served_table_loader import cashier_served_order_bp
 
 
 
@@ -47,6 +48,7 @@ app.register_blueprint(cashier_system_bp, url_prefix='/backend/cashier_system')
 app.register_blueprint(cashier_orderqueue_bp, url_prefix='/backend/cashier')
 app.register_blueprint(cashier_payment_bp, url_prefix='/backend/cashier')
 app.register_blueprint(cashier_orderstatus_bp, url_prefix='/backend/cashier')
+app.register_blueprint(cashier_served_order_bp, url_prefix='/backend/cashier')
 
 
 @app.route("/")

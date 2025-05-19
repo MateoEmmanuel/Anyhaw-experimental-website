@@ -275,7 +275,7 @@ body, html {
     text-align: center;
 }
 
-.servefood-btn-btn {
+.servefood-btn {
     font-size: 14px;
     background-color: #ff6600;
     color: white;
@@ -288,7 +288,7 @@ body, html {
     display: block; /* Ensures it behaves like a block-level element */
 }
 
-.servefood-btn-btn:hover {
+.servefood-btn:hover {
     background-color: #e04725d7;
 }
 
@@ -325,4 +325,17 @@ body, html {
     border:1px solid #ccc; 
     padding:20px; 
     z-index:1000;
+}
+
+.proceedtopayment-btn {
+    font-size: 14px;
+    background-color: #ff6600;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 12px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    margin-left: auto; /* Pushes button to the right */
+    display: block; /* Ensures it behaves like a block-level element */
 }

@@ -31,14 +31,27 @@ function servethefood(button) {
         alert("Order ID input not found.");
         return;
     }
-    
+    // ✅ Only check the 3rd column (prep status column) in each row
+    const rows = orderCard.querySelectorAll('tbody tr');
+    for (const row of rows) {
+        const prepStatusCell = row.querySelector('td:nth-child(3)');
+        if (!prepStatusCell) continue;
+
+        const status = prepStatusCell.textContent.trim().toLowerCase();
+        if (status !== 'prepared') {
+            alert("You can't serve this order yet. Some items are still being prepared.");
+            return;
+        }
+    }
+
+    // ✅ All items are prepared; allow serving
     currentOrderIdToServe = orderIdInput.value;
-    
 
     // Show modal
     document.getElementById("serveConfirmModal").style.display = "block";
     document.getElementById("serveModalOverlay").style.display = "block";
 }
+
 
 // ✅ DOMContentLoaded setup
 document.addEventListener("DOMContentLoaded", function () {
@@ -101,9 +114,9 @@ document.addEventListener("DOMContentLoaded", function () {
         })
         .then(response => response.json())
         .then(data => {
-            if (data.success) {
-                window.location.href = "/backend/cashier/order_status_loader";
-            } else {
+        if (data.success) {
+            window.location.href = "/backend/cashier/order_status_loader";
+        } else {
                 alert("Failed to update order status: " + data.message);
             }
         })
@@ -132,4 +145,7 @@ document.getElementById('orderpreparationstatus_btn').addEventListener('click', 
 });
 document.getElementById('orderque_btn').addEventListener('click', function () {
     window.location.href = '/backend/cashier/order_queue_loader';
+});
+document.getElementById('orderserved_btn').addEventListener('click', function () {
+    window.location.href = '/backend/cashier/served_order_loader';
 });

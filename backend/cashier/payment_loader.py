@@ -83,14 +83,6 @@ def payment_module(order_id):
 
     return render_template('payment_module.html', order=order, items=items, total_price=total_price)
 
-def update_order_status(order_id, new_status):
-    conn = create_connection()
-    cursor = conn.cursor()
-    cursor.execute("UPDATE processing_orders SET order_status = 'Preparing' WHERE order_ID = %s", (order_id,))
-    conn.commit()
-    cursor.close()
-    conn.close()
-
 @cashier_payment_bp.route('/update_order_status', methods=['POST'])
 def update_order_status_route():
     from flask import jsonify
@@ -105,6 +97,7 @@ def update_order_status_route():
         conn = create_connection()
         cursor = conn.cursor()
         cursor.execute("UPDATE processing_orders SET order_status = %s WHERE order_ID = %s", (new_status, order_id))
+        cursor.execute("UPDATE processing_order_items SET Prep_status = 'preparing' WHERE order_ID = %s", (order_id,))
         conn.commit()
         cursor.close()
         conn.close()

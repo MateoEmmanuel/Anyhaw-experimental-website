@@ -19,6 +19,7 @@
         </div>
         <nav>
             <a href="#" id="Home_btn">HOME</a>
+            <a href="#" id="returntoOrderQue_btn">RETURN</a>
             <a href="#" id="aboutUsLink_cashier">ABOUT US</a>
         </nav>
     </header>
@@ -30,8 +31,10 @@
                     <h2>Order Details</h2>
                     <div id="orderList">
                         <div class="order-card">
+                            <p><strong>Order Time:</strong> {{ order.order_time }}</p>
                             <p><strong>Order #:</strong> {{ order.order_ID }}</p>
                             <p><strong>Transaction ID:</strong> {{ order.transaction_id }}</p>
+                            <p><strong>Customer Name:</strong> {{ order.customer_name }}</p>
                             <p><strong>Table:</strong> {{ 'Delivery' if order.order_type == 'delivery' else order.table_number }}</p>
                             <p><strong>Status:</strong> {{ order.order_status }}</p>
                             <ul>

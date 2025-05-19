@@ -308,3 +308,7 @@ document.getElementById('cashiersystem_btn').addEventListener('click', function 
 document.getElementById('orderque_btn').addEventListener('click', function () {
     window.location.href = '/backend/cashier/order_queue_loader';
 });
+
+document.getElementById('orderserved_btn').addEventListener('click', function () {
+    window.location.href = '/backend/cashier/served_order_loader';
+});

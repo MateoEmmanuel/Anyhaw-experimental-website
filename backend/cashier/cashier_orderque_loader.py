@@ -1,7 +1,7 @@
-from flask import Blueprint, render_template
+from flask import Blueprint, render_template, request, jsonify
 from backend.dbconnection import create_connection
 
-cashier_orderqueue_bp = Blueprint('cashier_orderqueue', __name__, url_prefix='/cashier')
+cashier_orderqueue_bp = Blueprint('cashier_orderqueue', __name__)
 
 @cashier_orderqueue_bp.route('/order_queue_loader')
 def order_queue_loader():
@@ -11,9 +11,9 @@ def order_queue_loader():
     try:
         # Get only 'Pending' orders including order_type and order_time
         cursor.execute("""
-            SELECT order_ID, transaction_id, table_number, order_status, order_type, order_time 
+            SELECT order_ID, transaction_id, table_number, order_status, order_type, order_time, customer
             FROM processing_orders 
-            WHERE order_status = 'Pending'
+            WHERE order_status = 'pending'
             ORDER BY order_ID DESC
         """)
         orders_data = cursor.fetchall()
@@ -70,6 +70,7 @@ def order_queue_loader():
                 'order_status': order['order_status'],
                 'order_type': order['order_type'],
                 'order_time': order['order_time'],
+                'customer': order['customer'],
                 'items': items
             })
 
@@ -82,3 +83,31 @@ def order_queue_loader():
     finally:
         cursor.close()
         conn.close()
+
+@cashier_orderqueue_bp.route('/update_prep_status', methods=['POST'])
+def update_prep_status():
+    data = request.get_json()
+    order_id = data.get('order_id')
+
+    if not order_id:
+        return jsonify(success=False, message="Missing order_id"), 400
+
+    try:
+        conn = create_connection()
+        cursor = conn.cursor()
+
+        # Update only 'preparing' items to 'cooked' for the given order
+        cursor.execute("""
+            UPDATE processing_order_items 
+            SET Prep_status = 'served' 
+            WHERE order_ID = %s
+        """, (order_id,))
+
+        conn.commit()
+        cursor.close()
+        conn.close()
+
+        return jsonify(success=True)
+
+    except Exception as e:
+        return jsonify(success=False, message=str(e)), 500

@@ -189,7 +189,7 @@ document.addEventListener("DOMContentLoaded", function () {
         .then(data => {
             if (data.success) {
                 // Redirect to order queue page
-                window.location.href = "/cashier/order_queue_loader";
+                window.location.href = "/backend/cashier/order_queue_loader";
             } else {
                 alert("Failed to update order status: " + data.message);
             }
@@ -201,3 +201,6 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 });
 
+document.getElementById('returntoOrderQue_btn').addEventListener('click', function () {
+    window.location.href = '/backend/cashier/order_queue_loader';
+});

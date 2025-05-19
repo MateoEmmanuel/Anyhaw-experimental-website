@@ -29,7 +29,7 @@
                     <ul class="sub-options">
                         <li><a href="#" id="manualordering_btn">Manual Ordering</a></li>
                         <li><a href="#" id="orderque_btn">Order Queue</a></li>
-                        <li><a href="#" id="orderpreparationstatus_btn">Order Preparation Status</a></li>
+                        <li><a href="#" id="orderpreparationstatus_btn">Order Prep Status</a></li>
                         <li><a href="#" id="orderserved_btn">Served Order</a></li>
                         <li><a href="#"id="deliverystatus_btn">Delivery Status</a></li>
                     </ul>
@@ -51,7 +51,6 @@
                     {% for order in orders %}
                         <div class="order-card">
                             <h2>Transaction ID: {{ order.transaction_id }}</h2>
-                            <h2>Order ID: {{ order.order_id }}</h2>
                             <p><strong>Table:</strong> {{ 'Delivery' if order.order_type == 'delivery' else order.table_number }}</p>
                             <p><strong>Status:</strong> {{ order.order_status }}</p>
                             <p><strong>Order Time:</strong> {{ order.order_time }}</p>
@@ -61,6 +60,7 @@
                                     <tr>
                                         <th>Item Name</th>
                                         <th>Quantity</th>
+                                        <th>Prep Status</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -68,13 +68,14 @@
                                     <tr>
                                         <td>{{ item.Item_Name }}</td>
                                         <td>{{ item.Quantity }}</td>
+                                        <td style="text-transform: capitalize;">{{item.Prep_status}}</td>
                                     </tr>
                                     {% endfor %}
                                 </tbody>
                             </table>
                             <div class="order-card">
                                 <input type="hidden" class="orderId" value="{{ order.order_id }}">
-                                <button class="servefood-btn" onclick="servethefood(this)">Serve The Food</button>
+                                <button class="servefood-btn" onclick="servethefood(this)">{{'Ready For Delivery' if order.order_type == 'delivery' else 'Serve Food'}}</button>
                             </div>
                             <hr>
                         </div>
