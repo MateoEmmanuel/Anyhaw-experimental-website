@@ -10,11 +10,18 @@ document.addEventListener("DOMContentLoaded", function () {
     // Parse amount due from template variable, remove currency symbol just in case
     const amountDue = parseFloat("{{ '%.2f' | format(total_price) }}".replace('₱', '')) || 0;
 
+
         cashGivenInput.addEventListener("input", function () {
         const cashGiven = parseFloat(this.value) || 0;
         const change = cashGiven - amountDue;
         changeInput.value = change >= 0 ? `₱${change.toFixed(2)}` : "Insufficient";
-    });
+        });
+    
+        if(orderType === 'delivery') {
+            deliveryrow.style.display = 'block';
+            paymentoption.style.display = 'block';
+        };
+
 
   function resetPaymentFields() {
       // Hide payment input sections
@@ -28,18 +35,29 @@ document.addEventListener("DOMContentLoaded", function () {
       document.getElementById('paymentMethod').value = "";
   }
 
-  document.getElementById('cash-option').addEventListener('click', function () {
-    resetPaymentFields();
-    document.getElementById('paymentMethod').value = 'cash';
-    cashInputRow.style.display = "block";
-    changeRow.style.display = "block";
-  });
+    document.getElementById('cash-option').addEventListener('click', function () {
+        resetPaymentFields();
+        document.getElementById('paymentMethod').value = 'cash';
+        cashInputRow.style.display = "block";
+        changeRow.style.display = "block";
+    });
 
-  document.getElementById('gcash-option').addEventListener('click', function () {
-    resetPaymentFields();
-    document.getElementById('paymentMethod').value = 'gcash';
-    qrContainer.style.display = "block";
-  });
+    document.getElementById('gcash-option').addEventListener('click', function () {
+        resetPaymentFields();
+        document.getElementById('paymentMethod').value = 'gcash';
+        alert(orderType,gcashPayed);
+        if (orderType === 'delivery') {
+            document.getElementById('gcashDetails').style.display = 'block';
+        } else if (orderType === 'take-out' && gcashPayed === 'Yes') {
+            document.getElementById('gcashDetails').style.display = 'block';
+        } else {
+            document.getElementById('qrContainer').style.display = 'block';
+        }
+    });
+
+      document.getElementById('Home_btn').addEventListener('click', function () {
+        window.location.href = '/backend/cashier/cashier_loader';
+    });
 });
 
 document.addEventListener("DOMContentLoaded", function () {

@@ -31,11 +31,26 @@
                     <h2>Order Details</h2>
                     <div id="orderList">
                         <div class="order-card">
-                            <p><strong>Order Time:</strong> {{ order.order_time }}</p>
-                            <p><strong>Order #:</strong> {{ order.order_ID }}</p>
-                            <p><strong>Transaction ID:</strong> {{ order.transaction_id }}</p>
                             <p><strong>Customer Name:</strong> {{ order.customer_name }}</p>
-                            <p><strong>Table:</strong> {{ 'Delivery' if order.order_type == 'delivery' else order.table_number }}</p>
+                            <p><strong>Order Time:</strong> {{ order.order_time }}</p>
+                            <p><strong>Transaction ID:</strong> {{ order.transaction_id }}</p>
+                            
+                            {% if order.order_type == 'delivery'%}
+                                <p><strong>Order Type:</strong> Delivery</p>
+                            {% elif order.order_type == 'take-out' %}
+                                <p><strong>Order Type:</strong> Take-Out</p>
+                            {% elif order.order_type == 'dine-in' %}
+                                <p><strong>Order Type:</strong> Dine-In</p>
+                            {% endif %}
+                            
+                            {% if order.order_type == 'delivery' %}
+                                <p><strong>Delivery Address:</strong> {{ order.delivery_address }}</p>
+                            {% elif order.order_type == 'take-out' %}
+                                <p><strong>Takeout Number:</strong> {{ order.takeout_number }}</p>
+                            {% elif order.order_type == 'dine-in' %}
+                                <p><strong>Table Number:</strong> {{ order.table_number }}</p>
+                            {% endif %}
+
                             <p><strong>Status:</strong> {{ order.order_status }}</p>
                             <ul>
                                 {% for item in items %}
@@ -56,9 +71,15 @@
                         <input type="hidden" id="orderId" value="{{ order.order_ID }}">
                         <div class="amount-due-summary">
                             <p><strong>Amount to Pay:</strong> ₱{{ '%.2f' | format(total_price) }}</p>
+                            <div id="deliveryrow" style="display: none;">
+                                <label for="deliverystatement">Delivery Cost:</label>
+                                <input type="text" id="deliveryfee" name="deliveryfee" placeholder="₱0.00" step="0.01"  readonly>
+                                <label for="deliverystatement">Total Amount To Pay:</label>
+                                <input type="text" id="totalAmount" name="totalAmount" placeholder="₱0.00" step="0.01" readonly>
+                            <div>
                         </div>
 
-                        <div id="payment-option" class="payment-method">
+                        <div id="paymentoption" class="payment-method">
                             <label>Select Payment Method:</label>
                             <div>
                                 <button type="button" class="payment-btn" id="cash-option">Cash</button>
@@ -77,11 +98,16 @@
                             <input type="text" id="change" name="change" placeholder="₱0.00" step="0.01" readonly>
                         </div>
 
+                        <div id="gcashInput" style="display: none;">
+                            <label for="gcashRef">GCash Reference No.:</label>
+                            <input type="text" id="gcashRef" name="gcashRef" placeholder="Enter Reference No." required>
+                        </div>
+                        
                         <div id="qrContainer" style="display: none; text-align: center;">
-                            <label>Scan to Pay:</label><br>
+                            <label>Scan to Pay:</label>
+                            <br>
                             <img src="{{ url_for('static', filename='assets/images/Gcash_QR_CODE.png') }}" alt="GCash QR Code" style="width: 200px; height: 200px;">
                         </div>
-
                         <button type="submit" id="proceedToprintingBtn">Enter</button>
                     </form>
                 </div>

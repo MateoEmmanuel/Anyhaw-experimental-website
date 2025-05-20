@@ -50,12 +50,26 @@
                 {% if orders %}
                     {% for order in orders %}
                         <div class="order-card">
-                            <h2>Transaction ID: {{ order.transaction_id }}</h2>
-                            <p><strong>Table:</strong> {{ order.table_number }}</p>
-                            <p><strong>Order Type:</strong> {{ order.order_type }}</p>
-                            <p><strong>Status:</strong> {{ order.order_status }}</p>
+                            <p><strong>Customer Name:</strong> {{ order.customer }}</p>
                             <p><strong>Order Time:</strong> {{ order.order_time }}</p>
+                            <p><strong>Transaction ID:</strong> {{ order.transaction_id }}</p>
 
+                            {% if order.order_type == 'delivery'%}
+                                <p><strong>Order Type:</strong> Delivery</p>
+                            {% elif order.order_type == 'take-out' %}
+                                <p><strong>Order Type:</strong> Take-Out</p>
+                            {% elif order.order_type == 'dine-in' %}
+                                <p><strong>Order Type:</strong> Dine-In</p>
+                            {% endif %}
+
+                            {% if order.order_type == 'delivery' %}
+                                <p><strong>Delivery Address:</strong> {{ order.delivery_address }}</p>
+                            {% elif order.order_type == 'take-out' %}
+                                <p><strong>Takeout Number:</strong> {{ order.takeout_number }}</p>
+                            {% elif order.order_type == 'dine-in' %}
+                                <p><strong>Table Number:</strong> {{ order.table_number }}</p>
+                            {% endif %}
+                            
                             <table class="order-items-table">
                                 <thead>
                                     <tr>

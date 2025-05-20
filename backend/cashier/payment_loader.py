@@ -38,6 +38,26 @@ def payment_module(order_id):
         cursor.close()
         conn.close()
         return "Order not found or already processed", 404
+    else:
+        # get customer details
+        customer_id = order.get('customer_id')
+        guest_id = order.get('guest_id')
+        if order[customer_id] is not None:
+            cursor.execute("SELECT * FROM customer_accounts WHERE customer_id = %s", (order[customer_id],))
+            customer = cursor.fetchone()
+            order['customer_name'] = customer['customer_name']
+            order['customer_location'] = customer['customer_location']
+            order['customer_contact'] = customer['contact_number']
+        elif order[guest_id] is not None:
+            order['customer_name'] = order['guest_name']
+            order['customer_location'] = order['guest_location']
+            cursor.execute("SELECT contact_number FROM guest_accounts WHERE guest_id = %s", (order[guest_id],))
+            result = cursor.fetchone()
+            order['customer_contact'] = result['contact_number'] if result else "Unknown"
+        else:
+            cursor.close()
+            conn.close()
+            return "No customer or guest ID found for order.", 400
 
     cursor.execute("SELECT * FROM processing_order_items WHERE order_ID = %s", (order_id,))
     raw_items = cursor.fetchall()

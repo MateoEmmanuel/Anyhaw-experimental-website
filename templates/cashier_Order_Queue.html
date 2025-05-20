@@ -50,12 +50,31 @@
                 {% if orders %}
                     {% for order in orders %}
                         <div class="order-card">
-                            <h2>Transaction ID: {{ order.transaction_id }}</h2>
-                            <p><strong>Table:</strong> {{ 'Delivery' if order.order_type == 'delivery' else order.table_number }}</p>
-                            <p><strong>Status:</strong> {{ order.order_status }}</p>
+                            <p><strong>Customer Name:</strong> {{ order.customer }}</p>
                             <p><strong>Order Time:</strong> {{ order.order_time }}</p>
-                            <p><strong>Customer Name:</strong> {{ order.customer_name }}</p>
+                            <p><strong>Transaction ID:</strong> {{ order.transaction_id }}</p>
 
+                            {% if order.order_type == 'delivery'%}
+                                <p><strong>Order Type:</strong> Delivery</p>
+                            {% elif order.order_type == 'take-out' %}
+                                <p><strong>Order Type:</strong> Take-Out</p>
+                            {% elif order.order_type == 'dine-in' %}
+                                <p><strong>Order Type:</strong> Dine-In</p>
+                            {% endif %}
+
+                            {% if order.order_type == 'delivery' %}
+                                <p><strong>Delivery Address:</strong> {{ order.delivery_address }}</p>
+                                <p><strong>Yes</strong></p>
+                            {% elif order.order_type == 'take-out' %}
+                                <p><strong>Takeout Number:</strong> {{ order.takeout_number }}</p>
+                                <p><strong>Paid:</strong> {{ 'No' if order.gcash_payed is none else order.gcash_payed }}</p>
+                            {% elif order.order_type == 'dine-in' %}
+                                <p><strong>Table Number:</strong> {{ order.table_number }}</p>
+                                <p><strong>Paid:</strong> {{ 'No' if order.gcash_payed is none else order.gcash_payed }}</p>
+                            {% endif %}
+                            <p><strong>Status:</strong> {{ order.order_status }}</p>
+
+                            {% set ns = namespace(grand_total=0) %}
                             <table class="order-items-table">
                                 <thead>
                                     <tr>
@@ -67,13 +86,19 @@
                                 </thead>
                                 <tbody>
                                     {% for item in order['items'] %}
+                                    {% set item_total = item.Quantity|float * item.Price_Per_Item|float %}
+                                    {% set ns.grand_total = ns.grand_total + item_total %}
                                     <tr>
                                         <td>{{ item.Item_Name }}</td>
                                         <td>{{ item.Quantity }}</td>
-                                        <td>₱{{ "%.2f"|format(item.Price_Per_Item) }}</td>
-                                        <td>₱{{ "%.2f"|format(item.Quantity * item.Price_Per_Item) }}</td>
+                                        <td>₱{{ "%.2f"|format(item.Price_Per_Item|float) }}</td>
+                                        <td>₱{{ "%.2f"|format(item_total) }}</td>
                                     </tr>
                                     {% endfor %}
+                                    <tr>
+                                        <td colspan="3" style="text-align: right;"><strong>Total Amount:</strong></td>
+                                        <td><strong>₱{{ "%.2f"|format(ns.grand_total) }}</strong></td>
+                                    </tr>
                                 </tbody>
                             </table>
 
