@@ -14,7 +14,7 @@ def order_queue_loader():
 			SELECT order_ID, transaction_id, table_number, order_status, order_type, order_time,customer 
             FROM processing_orders 
             WHERE order_status = 'preparing'
-            ORDER BY order_ID DESC
+            ORDER BY order_time DESC
         """)
         orders_data = cursor.fetchall()
 

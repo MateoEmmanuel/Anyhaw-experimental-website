@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Any-Haw Litson Manok</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/cashier_delivery_status_style.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <script src="{{ url_for('static', filename='assets/js/cashier_delivery_status_scripts.js') }}" defer></script>
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='logoicon.ico') }}">
+</head>
+<body>
+    <header>
+        <div class="logo-title">
+            <a href="/backend/cashier/cashier_loader">
+                <img src="{{ url_for('static', filename='assets/images/navbar_logo.png') }}" alt="Any-Haw Logo">
+            </a>
+        </div>
+        <nav>
+            <a href="#" id="Home_btn">HOME</a>  <!-- ✅ CORRECT -->
+            <a href="#" id="aboutUsLink_cashier">ABOUT US</a>
+        </nav>
+    </header>
+    <section class="main-section">
+        <aside class="sidebar">
+            <ul class="options">
+                <li class="options-item">
+                    <a>Ordering and Processing</a>
+                    <ul class="sub-options">
+                        <li><a href="#" id="manualordering_btn">Manual Ordering</a></li>
+                        <li><a href="#" id="orderque_btn">Order Queue</a></li>
+                        <li><a href="#" id="orderpreparationstatus_btn">Order Prep Status</a></li>
+                        <li><a href="#" id="orderserved_btn">Served Order</a></li>
+                        <li><a href="#"id="deliverystatus_btn">Delivery Status</a></li>
+                    </ul>
+                </li>
+                <li class="options-item">
+                    <a href="#" id="transactionhistory_btn">Transaction History</a>
+                    <ul class="sub-options">
+                        <li><a href="#" id="dineinhistory_btn">Dine-In History</a></li>
+                        <li><a href="#" id="takeouthistory_btn">Take-Out History</a></li>
+                        <li><a href="#" id="deliveryhistory_btn">Delivery History</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </aside>
+
+        <div class="main-content">
+            <div class="main-content-inner">
+                {% if orders %}
+                    {% for order in orders %}
+                        <div class="order-card">
+                            <p><strong>Customer Name:</strong> {{ order.customer }}</p>
+                            <p><strong>Order Time:</strong> {{ order.order_time }}</p>
+                            <p><strong>Transaction ID:</strong> {{ order.transaction_id }}</p>
+
+                            {% if order.order_type == 'delivery'%}
+                                <p><strong>Order Type:</strong> Delivery</p>
+                            {% elif order.order_type == 'take-out' %}
+                                <p><strong>Order Type:</strong> Take-Out</p>
+                            {% elif order.order_type == 'dine-in' %}
+                                <p><strong>Order Type:</strong> Dine-In</p>
+                            {% endif %}
+
+                            {% if order.order_type == 'delivery' %}
+                                <p><strong>Delivery Address:</strong> {{ order.delivery_address }}</p>
+                                <p><strong>Yes</strong></p>
+                            {% elif order.order_type == 'take-out' %}
+                                <p><strong>Takeout Number:</strong> {{ order.takeout_number }}</p>
+                                <p><strong>Paid:</strong> {{ 'No' if order.gcash_payed is none else order.gcash_payed }}</p>
+                            {% elif order.order_type == 'dine-in' %}
+                                <p><strong>Table Number:</strong> {{ order.table_number }}</p>
+                                <p><strong>Paid:</strong> {{ 'No' if order.gcash_payed is none else order.gcash_payed }}</p>
+                            {% endif %}
+                            <p><strong>Status:</strong> {{ order.order_status }}</p>
+
+                            {% set ns = namespace(grand_total=0) %}
+                            <table class="order-items-table">
+                                <thead>
+                                    <tr>
+                                        <th>Item Name</th>
+                                        <th>Quantity</th>
+                                        <th>Price per Item</th>
+                                        <th>Total Price</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for item in order['items'] %}
+                                    {% set item_total = item.Quantity|float * item.Price_Per_Item|float %}
+                                    {% set ns.grand_total = ns.grand_total + item_total %}
+                                    <tr>
+                                        <td>{{ item.Item_Name }}</td>
+                                        <td>{{ item.Quantity }}</td>
+                                        <td>₱{{ "%.2f"|format(item.Price_Per_Item|float) }}</td>
+                                        <td>₱{{ "%.2f"|format(item_total) }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                    <tr>
+                                        <td colspan="3" style="text-align: right;"><strong>Total Amount:</strong></td>
+                                        <td><strong>₱{{ "%.2f"|format(ns.grand_total) }}</strong></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <hr>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="noqueue" >No Delivery Order happened today.</p>
+                {% endif %}
+            </div>
+        </div>
+    </section>
+
+    <!-- about us testing phase -->
+    <div id="aboutUsUI_cashier" class="floating-ui aboutus-ui" style="display: none;">
+        <div class="floating-aboutus-inner">
+            <div id="aboutUsContent" class="aboutus-content">
+                <p>We are Any-Haw, serving the best Litson Manok in town since 2020!</p>
+            </div>
+            <button class="white-close-btn" id="closeAboutUsBtn">X</button>
+        </div>
+    </div>
+
+</body>
+</html>

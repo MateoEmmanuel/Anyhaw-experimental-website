@@ -312,3 +312,7 @@ document.getElementById('orderque_btn').addEventListener('click', function () {
 document.getElementById('orderserved_btn').addEventListener('click', function () {
     window.location.href = '/backend/cashier/served_order_loader';
 });
+
+document.getElementById('deliverystatus_btn').addEventListener('click', function () {
+    window.location.href = '/backend/cashier/cashier_delivery_stats_loader';
+});

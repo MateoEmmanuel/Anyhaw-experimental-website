@@ -59,19 +59,6 @@ document.getElementById('aboutUsLink_cashier').addEventListener('click', functio
 
 document.getElementById('closeAboutUsBtn').onclick = hideAllUI;
 
-function proceedToPayment(button) {
-    // Get the parent order card div
-    const orderCard = button.closest('.order-card');
-    // Find the hidden input with class 'order-id'
-    const orderId = orderCard.querySelector('.order-id').value;
-    
-    // Now you have the hidden order ID, you can send it to backend or redirect
-    console.log("Proceeding with order ID:", orderId);
-
-    // Example: redirect to payment page for that order
-    window.location.href = `/backend/cashier/payment_module/${orderId}`;
-}
-
 document.getElementById('orderpreparationstatus_btn').addEventListener('click', function () {
     window.location.href = '/backend/cashier/order_status_loader';
 });

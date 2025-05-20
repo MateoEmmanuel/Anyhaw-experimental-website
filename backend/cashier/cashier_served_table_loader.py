@@ -15,7 +15,7 @@ def served_order_loader():
             FROM processing_orders 
             WHERE order_status = 'served'
             AND order_type IN ('dine-in', 'take-out')
-            ORDER BY order_ID DESC;
+            ORDER BY order_time DESC;
         """)
         orders_data = cursor.fetchall()
 

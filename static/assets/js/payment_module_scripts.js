@@ -6,6 +6,8 @@ document.addEventListener("DOMContentLoaded", function () {
     const qrContainer = document.getElementById("qrContainer");
     const cashGivenInput = document.getElementById("cashGiven");
     const changeInput = document.getElementById("change");
+    const deliveryfeeinput = document.getElementById("deliveryfee");
+    const totalAmountoutput = document.getElementById("totalAmount");
 
     // Parse amount due from template variable, remove currency symbol just in case
     const amountDue = parseFloat("{{ '%.2f' | format(total_price) }}".replace('₱', '')) || 0;
@@ -15,6 +17,12 @@ document.addEventListener("DOMContentLoaded", function () {
         const cashGiven = parseFloat(this.value) || 0;
         const change = cashGiven - amountDue;
         changeInput.value = change >= 0 ? `₱${change.toFixed(2)}` : "Insufficient";
+        });
+
+        deliveryfeeinput.addEventListener("input", function () {
+        const deliveryfee = parseFloat(this.value) || 0;
+        const totalAmount = deliveryfee + amountDue;
+        totalAmountoutput.value = totalAmount >= 0 ? `₱${change.toFixed(2)}` : "Insufficient";
         });
     
         if(orderType === 'delivery') {
@@ -63,6 +71,8 @@ document.addEventListener("DOMContentLoaded", function () {
 document.addEventListener("DOMContentLoaded", function () {
     const cashInput = document.getElementById('cashGiven');
     const changeField = document.getElementById('change');
+    const deliveryfeeinput = document.getElementById("deliveryfee");
+    const totalAmountoutput = document.getElementById("totalAmount");
 
     // Get the total amount to pay from the text content
     const amountText = document.querySelector('.amount-due-summary p').innerText;
@@ -76,6 +86,16 @@ document.addEventListener("DOMContentLoaded", function () {
             changeField.value = `₱${change.toFixed(2)}`;
         } else {
             changeField.value = "₱0.00";
+        }
+    });
+
+    deliveryfeeinput.addEventListener("input", function () {
+        const deliveryfee = parseFloat(deliveryfeeinput.value) || 0;
+        if (!isNaN(deliveryfee)){
+            const totalAmount = deliveryfee + amountToPay;
+            totalAmountoutput.value = `₱${totalAmount.toFixed(2)}`;
+        }else{
+            totalAmountoutput.value = 'Delivery Fee Not Filled'
         }
     });
 });

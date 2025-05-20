@@ -1,10 +1,10 @@
 from flask import Blueprint, render_template, request, jsonify
 from backend.dbconnection import create_connection
 
-cashier_orderqueue_bp = Blueprint('cashier_orderqueue', __name__)
+cashier_delivery_status_loader_bp = Blueprint('cashier_delivery_status_loader', __name__, url_prefix='/cashier')
 
-@cashier_orderqueue_bp.route('/order_queue_loader')
-def order_queue_loader():
+@cashier_delivery_status_loader_bp.route('/cashier_delivery_stats_loader')
+def cashier_delivery_stats_loader():
     conn = create_connection()
     cursor = conn.cursor(dictionary=True)
 
@@ -12,15 +12,20 @@ def order_queue_loader():
         # Get only 'Pending' orders including order_type and order_time
         cursor.execute("""
             SELECT order_ID, transaction_id, table_number, order_status, order_type,
-                DATE_FORMAT(order_time, '%M %d %Y / %h:%i:%s %p') AS order_time, customer_id,guest_id,guest_name,guest_location, gcash_payed
+                DATE_FORMAT(order_time, '%M %d %Y / %h:%i:%s %p') AS order_time,
+                customer_id, guest_id, guest_name, guest_location, gcash_payed
             FROM processing_orders 
-            WHERE order_status = 'pending'
+            WHERE order_status NOT IN ('pending', 'prepared', 'served')
             AND (
                     order_type != 'delivery' OR
-                    (order_type = 'delivery' AND gcash_payed = 'Yes')
+                    (order_type = 'delivery')
+                )
+            AND NOT (
+                    order_status = 'delivered' AND order_time > NOW() - INTERVAL 1 HOUR
                 )
             ORDER BY order_time DESC
         """)
+
         orders_data = cursor.fetchall()
         
         orders = []
@@ -110,40 +115,12 @@ def order_queue_loader():
                 'items': items
             })
 
-        return render_template('cashier_order_queue.html', orders=orders)
+        return render_template('Cashier_Delivery_status.html', orders=orders)
 
     except Exception as e:
         print("Error loading order queue:", e)
-        return render_template('cashier_order_queue.html', orders=[])
+        return render_template('Cashier_Delivery_status.html', orders=[])
 
     finally:
         cursor.close()
         conn.close()
-
-@cashier_orderqueue_bp.route('/update_prep_status', methods=['POST'])
-def update_prep_status():
-    data = request.get_json()
-    order_id = data.get('order_id')
-
-    if not order_id:
-        return jsonify(success=False, message="Missing order_id"), 400
-
-    try:
-        conn = create_connection()
-        cursor = conn.cursor()
-
-        # Update only 'preparing' items to 'cooked' for the given order
-        cursor.execute("""
-            UPDATE processing_order_items 
-            SET Prep_status = 'served' 
-            WHERE order_ID = %s
-        """, (order_id,))
-
-        conn.commit()
-        cursor.close()
-        conn.close()
-
-        return jsonify(success=True)
-
-    except Exception as e:
-        return jsonify(success=False, message=str(e)), 500
