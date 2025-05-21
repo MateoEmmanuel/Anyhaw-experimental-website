@@ -13,7 +13,7 @@ def cashier_delivery_stats_loader():
         cursor.execute("""
             SELECT order_ID, transaction_id, table_number, order_status, order_type,
                 DATE_FORMAT(order_time, '%M %d %Y / %h:%i:%s %p') AS order_time,
-                customer_id, guest_id, guest_name, guest_location, gcash_payed
+                customer_id, guest_id, guest_name, guest_location, delivery_payment_status
             FROM processing_orders 
             WHERE order_status NOT IN ('pending', 'prepared', 'served')
             AND (

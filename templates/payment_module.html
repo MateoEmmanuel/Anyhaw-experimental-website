@@ -70,13 +70,17 @@
                     <form id="paymentForm">
                         <input type="hidden" id="orderId" value="{{ order.order_ID }}">
                         <div class="amount-due-summary">
-                            <p><strong>Amount to Pay:</strong> ₱{{ '%.2f' | format(total_price) }}</p>
+                            
+                            <label for="totalamountdue">Total Orde Costs:</label>
+                            <input type="text" id="amountduetopay" name="amountdue" placeholder="₱0.00" step="0.01" readonly data-price="{{ order.total_price }}">
+                            
                             <div id="deliveryrow" style="display: none;">
                                 <label for="deliverystatement">Delivery Cost:</label>
                                 <input type="text" id="deliveryfee" name="deliveryfee" placeholder="₱0.00" step="0.01" >
                                 <label for="totalpayment">Total Amount To Pay:</label>
                                 <input type="text" id="totalAmount" name="totalAmount" placeholder="₱0.00" step="0.01" readonly>
                             <div>
+                                
                         </div>
 
                         <div id="paymentoption" class="payment-method">
