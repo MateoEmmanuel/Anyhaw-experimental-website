@@ -23,6 +23,9 @@ from backend.logout import logout_bp
 from backend.cashier.cashier_system import cashier_system_bp
 from backend.cashier.cashier_orderque_loader import cashier_orderqueue_bp
 from backend.cashier.payment_loader import cashier_payment_bp
+from backend.cashier.order_status_loader import cashier_orderstatus_bp
+
+
 
 
 app = Flask(__name__)
@@ -43,34 +46,39 @@ app.register_blueprint(cashier_bp, url_prefix='/backend/cashier')
 app.register_blueprint(cashier_system_bp, url_prefix='/backend/cashier_system')
 app.register_blueprint(cashier_orderqueue_bp, url_prefix='/backend/cashier')
 app.register_blueprint(cashier_payment_bp, url_prefix='/backend/cashier')
+app.register_blueprint(cashier_orderstatus_bp, url_prefix='/backend/cashier')
+
 
 
 @app.route("/")
 def Index_home():
+    # Check if a user is already logged in by checking session
     if 'user_id' in session and 'role' in session:
         role = session['role']
+        # Redirect to role-specific UI
         if role == "admin":
-            return redirect(url_for("admin_ui"))
-        elif role == "customer":
-            return redirect(url_for("customer_ui"))
+            return redirect(url_for("admin_ui")) # admin main UI lobby
+        elif role == "customer": 
+            return redirect(url_for("customer_ui")) # custoemr main UI lobby
         elif role == "staff":
-            return redirect(url_for("staff_ui"))
+            return redirect(url_for("staff_ui")) # staff main UI lobby
         elif role == "Cashier":
-            return redirect(url_for("cashier_bp.cashier_loader"))
+            return redirect(url_for("cashier_bp.cashier_loader"))  # cashier main UI lobby
         elif role == "kitchen":
-            return redirect(url_for("kitchen_ui"))
+            return redirect(url_for("kitchen_ui")) # kitchen main UI lobby
         elif role == "delivery":
-            return redirect(url_for("delivery_ui"))
+            return redirect(url_for("delivery_ui")) # delivery main UI lobby
         else:
+            # Unknown role, just return to index
             return render_template("index.html")
     else:
-        return render_template("index.html")
+        # No user session — show the main landing page
+        return render_template("index.html")  # This will render index.html from the templates folder
 
 
 @app.route("/customer_ui")
 def customer_ui():
-    username = session.get('username', 'Guest')
-    return render_template("customer_ui.html", username=username)
+    return render_template("customer_ui.html")
 
 
 if __name__ == "__main__":

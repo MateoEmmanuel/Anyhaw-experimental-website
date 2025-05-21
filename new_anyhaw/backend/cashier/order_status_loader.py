@@ -1,9 +1,9 @@
-from flask import Blueprint, render_template
+from flask import Blueprint, render_template, request, redirect, url_for
 from backend.dbconnection import create_connection
 
-cashier_orderqueue_bp = Blueprint('cashier_orderqueue', __name__, url_prefix='/cashier')
+cashier_orderstatus_bp = Blueprint('cashier_orderstatus', __name__, url_prefix='/cashier')
 
-@cashier_orderqueue_bp.route('/order_queue_loader')
+@cashier_orderstatus_bp.route('/order_status_loader')
 def order_queue_loader():
     conn = create_connection()
     cursor = conn.cursor(dictionary=True)
@@ -13,7 +13,7 @@ def order_queue_loader():
         cursor.execute("""
             SELECT order_ID, transaction_id, table_number, order_status, order_type, order_time 
             FROM processing_orders 
-            WHERE order_status = 'Pending'
+            WHERE order_status = 'preparing'
             ORDER BY order_ID DESC
         """)
         orders_data = cursor.fetchall()
@@ -24,7 +24,7 @@ def order_queue_loader():
 
             # Get items in this order
             cursor.execute("""
-                SELECT item_id, Item_Type, Quantity, Price_Per_Item, Total_Item_Price 
+                SELECT item_id, Item_Type, Quantity 
                 FROM processing_order_items 
                 WHERE order_ID = %s
             """, (order_id,))
@@ -73,12 +73,33 @@ def order_queue_loader():
                 'items': items
             })
 
-        return render_template('cashier_order_queue.html', orders=orders)
+        return render_template('cashier_orderstatus.html', orders=orders)
 
     except Exception as e:
         print("Error loading order queue:", e)
-        return render_template('cashier_order_queue.html', orders=[])
+        return render_template('cashier_orderstatus.html', orders=[])
 
     finally:
         cursor.close()
         conn.close()
+
+@cashier_orderstatus_bp.route('/update_orderstatus', methods=['POST'])
+def update_orderstatus_serve():
+    from flask import jsonify
+    data = request.get_json()
+    order_id = data.get('order_id')
+    new_status = data.get('new_status')
+
+    if not order_id or not new_status:
+        return jsonify(success=False, message="Missing order_id or new_status"), 400
+
+    try:
+        conn = create_connection()
+        cursor = conn.cursor()
+        cursor.execute("UPDATE processing_orders SET order_status = %s WHERE order_ID = %s", (new_status, order_id))
+        conn.commit()
+        cursor.close()
+        conn.close()
+        return jsonify(success=True)
+    except Exception as e:
+        return jsonify(success=False, message=str(e)), 500

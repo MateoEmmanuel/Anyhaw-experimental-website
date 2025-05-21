@@ -16,6 +16,7 @@ def login():
     user = None
     role = None
 
+    # Check restaurant_accounts first
     if "@" in username_or_email:
         cursor.execute("SELECT * FROM restaurant_accounts WHERE email = %s", (username_or_email,))
     else:
@@ -24,8 +25,9 @@ def login():
     result = cursor.fetchone()
     if result:
         user = result
-        role = result["account_type"].capitalize()
+        role = result["account_type"].capitalize()  # e.g., 'Cashier', 'Admin', etc.
 
+    # If not found, check customer_accounts
     if not user:
         if "@" in username_or_email:
             cursor.execute("SELECT * FROM customer_accounts WHERE email = %s", (username_or_email,))
@@ -35,16 +37,14 @@ def login():
         result = cursor.fetchone()
         if result:
             user = result
-            role = "Customer"
+            role = "Customer"  # Explicitly assign customer role
 
     conn.close()
 
     if user and bcrypt.checkpw(password.encode("utf-8"), user["password"].encode("utf-8")):
+        # Store session for redirection handling if needed
         session["user_id"] = user.get("account_id") or user.get("customer_id")
         session["role"] = role
-
-        # ADDITION: Store username in session for UI display
-        session["username"] = user.get("username") or user.get("customer_username")
 
         return jsonify({
             "message": "Login successful",

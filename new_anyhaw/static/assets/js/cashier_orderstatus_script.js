@@ -59,16 +59,30 @@ document.getElementById('aboutUsLink_cashier').addEventListener('click', functio
 
 document.getElementById('closeAboutUsBtn').onclick = hideAllUI;
 
-function proceedToPayment(button) {
-    // Get the parent order card div
-    const orderCard = button.closest('.order-card');
-    // Find the hidden input with class 'order-id'
-    const orderId = orderCard.querySelector('.order-id').value;
-    
-    // Now you have the hidden order ID, you can send it to backend or redirect
-    console.log("Proceeding with order ID:", orderId);
-
-    // Example: redirect to payment page for that order
-    window.location.href = `/backend/cashier/payment_module/${orderId}`;
-}
+    function servethefood(button) {
+        const orderId = document.getElementById("orderId").value; // Assuming you have a hidden input
+          fetch("/backend/cashier/update_orderstatus", {
+              method: "POST",
+              headers: {
+                  "Content-Type": "application/json"
+              },
+              body: JSON.stringify({
+                  order_id: orderId,
+                  new_status: "serve"
+              })
+          })
+          .then(response => response.json())
+          .then(data => {
+              if (data.success) {
+                  // Redirect to order queue page
+                  window.location.href = "/backend/cashier/order_status_loader";
+              } else {
+                  alert("Failed to update order status: " + data.message);
+              }
+          })
+          .catch(error => {
+              console.error("Error updating order status:", error);
+              alert("Something went wrong. Please try again.");
+          });
+    }
 
