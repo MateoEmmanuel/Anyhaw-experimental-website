@@ -16,12 +16,9 @@ def order_queue_loader():
                        guest_id,guest_name,guest_location, delivery_payment_status
             FROM processing_orders 
             WHERE order_status = 'pending'
-            AND (
-                    order_type != 'delivery' OR
-                    (order_type = 'delivery' AND gcash_payed = 'Yes')
-                )
             ORDER BY order_time DESC
         """)
+
         orders_data = cursor.fetchall()
         
         orders = []
@@ -103,19 +100,18 @@ def order_queue_loader():
                 'order_status': order['order_status'],
                 'order_type': order['order_type'],
                 'order_time': order['order_time'],
-                'customer': order['customer'],
-                'delivery_payment_status': order['delivery_payment_status'],
+                'customer': order['customer_name'],  # This exists and is fetched correctly above
                 'customer_name': order['customer_name'],
                 'customer_contact': order['customer_contact'],
                 'customer_location': order['customer_location'],
                 'items': items
             })
 
-        return render_template('cashier_order_queue.html', orders=orders)
+        return render_template('cashier_Order_Queue.html', orders=orders)
 
     except Exception as e:
         print("Error loading order queue:", e)
-        return render_template('cashier_order_queue.html', orders=[])
+        return render_template('cashier_Order_Queue.html', orders=[])
 
     finally:
         cursor.close()

@@ -23,6 +23,7 @@ from backend.logout import logout_bp
 from backend.cashier.cashier_system import cashier_system_bp
 from backend.cashier.cashier_orderque_loader import cashier_orderqueue_bp
 from backend.cashier.payment_loader import cashier_payment_bp
+from backend.cashier.reciepts.print_reciept import print_receipt_by_order_id
 from backend.cashier.order_status_loader import cashier_orderstatus_bp
 from backend.cashier.cashier_served_table_loader import cashier_served_order_bp
 from backend.cashier.cashier_delivery_status_loader import cashier_delivery_status_loader_bp

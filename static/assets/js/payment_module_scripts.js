@@ -1,6 +1,8 @@
 document.addEventListener("DOMContentLoaded", function () {
-    const paymentButtons = document.querySelectorAll('.payment-btn');
-    const paymentMethodInput = document.getElementById("paymentMethod");  // hidden input
+    const orderType = "{{ order.order_type }}";
+    const gcashPayed = "{{ gcash_payed_status }}";
+
+    const paymentMethodInput = document.getElementById("paymentMethod");
     const cashInputRow = document.getElementById("cashInputRow");
     const changeRow = document.getElementById("changeRow");
     const qrContainer = document.getElementById("qrContainer");
@@ -8,308 +10,109 @@ document.addEventListener("DOMContentLoaded", function () {
     const changeInput = document.getElementById("change");
     const deliveryfeeinput = document.getElementById("deliveryfee");
     const totalAmountoutput = document.getElementById("totalAmount");
+    const discountButtons = document.querySelectorAll('.discount-btn');
+    const discountPercentInput = document.getElementById("discountPercent");
+    const discountDisplay = document.getElementById("discountDisplay");
 
-    // Parse amount due from template variable, remove currency symbol just in case
-    const amountDue = parseFloat("{{ '%.2f' | format(total_price) }}".replace('₱', '')) || 0;
+    const baseAmount = parseFloat("{{ '%.2f' | format(total_price) }}".replace('₱', '')) || 0;
 
-        cashGivenInput.addEventListener("input", function () {
-        const cashGiven = parseFloat(this.value) || 0;
-        const change = cashGiven - amountDue;
-        changeInput.value = change >= 0 ? `₱${change.toFixed(2)}` : "Insufficient";
+    function getDiscountedAmount() {
+        const discountPercent = parseFloat(discountPercentInput.value) || 0;
+        return baseAmount * (1 - discountPercent / 100);
+    }
+
+    function resetPaymentFields() {
+        cashInputRow.style.display = "none";
+        changeRow.style.display = "none";
+        qrContainer.style.display = "none";
+
+        cashGivenInput.value = "";
+        changeInput.value = "";
+        paymentMethodInput.value = "";
+    }
+
+    if (orderType === 'delivery') {
+        document.getElementById('deliveryrow').style.display = 'block';
+        document.getElementById('paymentoption').style.display = 'none';
+    } else {
+        document.getElementById('deliveryrow').style.display = 'none';
+        document.getElementById('paymentoption').style.display = 'block';
+    }
+
+    cashGivenInput.addEventListener("input", updateChangeDisplay);
+
+    discountButtons.forEach(button => {
+        button.addEventListener("click", () => {
+            const percent = parseFloat(button.getAttribute("data-percent")) || 0;
+            const id = button.getAttribute("data-id");
+
+            document.getElementById("discountPercent").value = percent;
+            document.getElementById("discountID").value = id;
+
+            discountDisplay.value = percent + "%";
+            document.getElementById("selected-discount-display").style.display = percent > 0 ? "block" : "none";
+
+            discountButtons.forEach(btn => btn.classList.remove("selected"));
+            button.classList.add("selected");
+
+            updateChangeDisplay();
         });
-
-        deliveryfeeinput.addEventListener("input", function () {
-        const deliveryfee = parseFloat(this.value) || 0;
-        const totalAmount = deliveryfee + amountDue;
-        totalAmountoutput.value = totalAmount >= 0 ? `₱${totalAmount.toFixed(2)}` : "Insufficient";
-        });
-    
-        if(orderType === 'delivery') {
-            deliveryrow.style.display = 'block';
-            paymentoption.style.display = 'block';
-            paymentoption.style.display = 'hidden';
-        };
-
-
-  function resetPaymentFields() {
-      // Hide payment input sections
-      cashInputRow.style.display = "none";
-      changeRow.style.display = "none";
-      qrContainer.style.display = "none";
-
-      // Clear field values
-      document.getElementById('cashGiven').value = "";
-      document.getElementById('change').value = "";
-      document.getElementById('paymentMethod').value = "";
-  }
+    });
 
     document.getElementById('cash-option').addEventListener('click', function () {
         resetPaymentFields();
-        document.getElementById('paymentMethod').value = 'cash';
+        paymentMethodInput.value = 'cash';
         cashInputRow.style.display = "block";
         changeRow.style.display = "block";
     });
 
     document.getElementById('gcash-option').addEventListener('click', function () {
         resetPaymentFields();
-        document.getElementById('paymentMethod').value = 'gcash';
-        alert(`Order Type: ${orderType}, GCash Paid: ${gcashPayed}`);
-        if (orderType === 'delivery') {
-            document.getElementById('gcashDetails').style.display = 'block';
-        } else if (orderType === 'take-out' && gcashPayed === 'Yes') {
+        paymentMethodInput.value = 'gcash';
+        if (orderType === 'take-out') {
             document.getElementById('gcashDetails').style.display = 'block';
         } else {
-            document.getElementById('qrContainer').style.display = 'block';
+            qrContainer.style.display = 'block';
         }
     });
 
-      document.getElementById('Home_btn').addEventListener('click', function () {
-        window.location.href = '/backend/cashier/cashier_loader';
-    });
-});
-
-document.addEventListener("DOMContentLoaded", function () {
-    const cashInput = document.getElementById('cashGiven');
-    const changeField = document.getElementById('change');
-    const deliveryfeeinput = document.getElementById("deliveryfee");
-    const totalAmountoutput = document.getElementById("totalAmount");
-
-    // Get the total amount to pay from the text content
-    const amountText = document.querySelector('.amount-due-summary p').innerText;
-    const amountToPay = parseFloat(amountText.replace(/[^\d.]/g, ''));
-
-    // Listen for input in the cash field
-    cashInput.addEventListener('input', function () {
-        const cashGiven = parseFloat(cashInput.value);
-        if (!isNaN(cashGiven)) {
-            const change = cashGiven - amountToPay;
-            changeField.value = `₱${change.toFixed(2)}`;
-        } else {
-            changeField.value = "₱0.00";
-        }
+    document.getElementById('returntoOrderQue_btn').addEventListener('click', function () {
+        window.location.href = '/backend/cashier/order_queue_loader';
     });
 
-    const deliveryfee = parseFloat(deliveryfeeinput.value);
-    deliveryfeeinput.addEventListener("input", function () {
-        if (!isNaN(deliveryfee)){
-            const totalAmount = deliveryfee + amountToPay;
-            totalAmountoutput.value = `₱${totalAmount.toFixed(2)}`;
-        }else{
-            totalAmountoutput.value = 'Delivery Fee Not Filled'
-        }
-    });
-});
+    document.getElementById('computePaymentBtn').addEventListener('click', function () {
+        const totalDue = parseFloat("{{ '%.2f' | format(total_price) }}");
+        const discountPercent = parseFloat(discountPercentInput.value) || 0;
+        const cashGiven = parseFloat(cashGivenInput.value) || 0;
+        const deliveryFee = parseFloat(deliveryfeeinput?.value || 0);
 
-document.addEventListener("DOMContentLoaded", function () {
-    const proceedBtn = document.getElementById("proceedToprintingBtn");
-    const cashGivenInput = document.getElementById("cashGiven");
-    const changeField = document.getElementById("change");
-    const paymentMethodInput = document.getElementById("paymentMethod");
+        const discountAmount = totalDue * (discountPercent / 100);
+        const discountedTotal = totalDue - discountAmount;
+        const totalToPay = discountedTotal + deliveryFee;
 
-    const modalProceed = document.getElementById("printConfirmModal");
-    const modalOverlay = document.getElementById("modalOverlay");
-    const yesBtn = document.getElementById("modalYesBtn");
-    const noBtn = document.getElementById("modalNoBtn");
-    const cancelBtn = document.getElementById("modalCancelBtn");
+        if (totalAmountoutput) totalAmountoutput.value = `₱${totalToPay.toFixed(2)}`;
 
-    let proceedConfirmed = false;
-    let isPrintConfirmation = false;
-
-        if (orderType === 'delivery'){
-            if (proceedBtn) {
-                proceedBtn.addEventListener("click", function (e) {
-                    e.preventDefault();
-
-                    const paymentMethod = paymentMethodInput.value;
-                    deliveryfeeinput.addEventListener("input", function () {
-                            const deliveryfee = parseFloat(this.value) || 0;
-                            
-                        if (deliveryfee>0) {             
-                            const pricetopay = document.getElementById('amountduetopay');
-                            const deliveryFeeInput = document.getElementById('deliveryfee');
-                            const totaltopay = document.getElementById('totalAmount');
-
-                            if (parseFloat(deliveryFeeInput.value) <= 0 || isNaN(parseFloat(deliveryFeeInput.value))) {
-                                alert("Please enter a valid delivery fee.");
-                                return;
-                            } else {
-                                showModalProceedConfirmation(true);
-                            }
-                        } else {
-                            alert("Error, Delivery Payment System is malfunctioning.");
-                        }
-                    });
-                });
-
-                yesBtn.addEventListener("click", function () {
-                    const paymentMethod = paymentMethodInput.value;
-
-                    if (!proceedConfirmed) {
-                        proceedConfirmed = true;
-                        isPrintConfirmation = true;
-
-                        modalProceed.querySelector("p").textContent = "Do you want to print the receipt?";
-                        cancelBtn.style.display = "inline-block";
-
-                    } else if (isPrintConfirmation) {
-                        window.print();
-                        updateOrderStatus(); // After printing, update status
-                        closeModal();
-                        alert("Order proceeded. Status updated to 'preparing'.");
-                        resetModalState();
-                    }
-                });
-
-    
-                noBtn.addEventListener("click", function () {
-                    if (!proceedConfirmed) {
-                        alert("You chose No. The order will not proceed.");
-                        closeModal();
-                        resetModalState();
-                    } else if (isPrintConfirmation) {
-                        alert("You chose No. The receipt will not be printed but order will proceed.");
-                        updateOrderStatus(); // Proceed without printing
-                        closeModal();
-                        resetModalState();
-                    }
-                });
-
-
-                cancelBtn.addEventListener("click", function () {
-                    alert("You canceled the action.");
-                    closeModal();
-                    resetModalState();
-                });
-
-            }else{
-                if (proceedBtn) {
-                    proceedBtn.addEventListener("click", function (e) {
-                        e.preventDefault();
-
-                        const paymentMethod = paymentMethodInput.value;
-
-                        if (paymentMethod === "cash") {
-                            const cashGivenValue = parseFloat(cashGivenInput.value);
-                            const changeValueRaw = changeField.value.replace('₱', '').trim();
-                            const changeValue = parseFloat(changeValueRaw);
-
-                            if (isNaN(cashGivenValue) || cashGivenValue <= 0) {
-                                alert("Please enter a valid cash amount greater than 0.");
-                                return;
-                            }
-
-                            if (changeValueRaw.toLowerCase() === "insufficient" || (!isNaN(changeValue) && changeValue < 0)) {
-                                alert("Cannot proceed. Insufficient cash received.");
-                                return;
-                            }
-
-                            showModalProceedConfirmation(true);
-                        } else if (paymentMethod === "gcash") {
-                            showModalProceedConfirmation(false);
-                        } else {
-                            alert("Please select a valid payment method.");
-                        }
-                    });
-                }
-
-                yesBtn.addEventListener("click", function () {
-                    const paymentMethod = paymentMethodInput.value;
-
-                    if (!proceedConfirmed) {
-                        proceedConfirmed = true;
-                        isPrintConfirmation = true;
-
-                        modalProceed.querySelector("p").textContent = "Do you want to print the receipt?";
-                        cancelBtn.style.display = "inline-block";
-
-                    } else if (isPrintConfirmation) {
-                        window.print();
-                        updateOrderStatus(); // After printing, update status
-                        closeModal();
-                        alert("Order proceeded. Status updated to 'preparing'.");
-                        resetModalState();
-                    }
-                });
-
-            
-                noBtn.addEventListener("click", function () {
-                    if (!proceedConfirmed) {
-                        alert("You chose No. The order will not proceed.");
-                        closeModal();
-                        resetModalState();
-                    } else if (isPrintConfirmation) {
-                        alert("You chose No. The receipt will not be printed but order will proceed.");
-                        updateOrderStatus(); // Proceed without printing
-                        closeModal();
-                        resetModalState();
-                    }
-                });
-
-
-                cancelBtn.addEventListener("click", function () {
-                    alert("You canceled the action.");
-                    closeModal();
-                    resetModalState();
-                });
+        if (paymentMethodInput.value === 'cash') {
+            const change = cashGiven - totalToPay;
+            if (changeInput) {
+                changeInput.value = `₱${change.toFixed(2)}`;
+                changeRow.style.display = 'block';
             }
         }
-    
-    function showModalProceedConfirmation(showCancel) {
-        proceedConfirmed = false;
-        isPrintConfirmation = false;
-        modalProceed.querySelector("p").textContent = "Do you want to proceed with this order?";
-        modalProceed.style.display = "block";
-        modalOverlay.style.display = "block";
+    });
 
-        cancelBtn.style.display = showCancel ? "inline-block" : "none";
-        yesBtn.style.display = "inline-block";
-        noBtn.style.display = "inline-block";
+    function updateChangeDisplay() {
+        const cash = parseFloat(cashGivenInput.value) || 0;
+        const discountPercent = parseFloat(discountPercentInput.value) || 0;
+        const deliveryFee = parseFloat(deliveryfeeinput?.value || 0);
+
+        const discountAmount = baseAmount * (discountPercent / 100);
+        const discountedTotal = baseAmount - discountAmount;
+        const totalToPay = discountedTotal + deliveryFee;
+
+        const change = cash - totalToPay;
+        if (changeInput) {
+            changeInput.value = `₱${change.toFixed(2)}`;
+        }
     }
-
-    function closeModal() {
-        modalProceed.style.display = "none";
-        modalOverlay.style.display = "none";
-    }
-
-    function resetModalState() {
-        proceedConfirmed = false;
-        isPrintConfirmation = false;
-        modalProceed.querySelector("p").textContent = "Do you want to proceed with this order?";
-        cancelBtn.style.display = "inline-block";
-        yesBtn.style.display = "inline-block";
-        noBtn.style.display = "inline-block";
-    }
-
-    function updateOrderStatus() {
-            const orderId = document.getElementById("orderId").value; // Assuming you have a hidden input
-                fetch("/backend/cashier/update_order_status", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({
-                        order_id: orderId,
-                        new_status: "preparing"
-                    })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        // Redirect to order queue page
-                        window.location.href = "/backend/cashier/order_queue_loader";
-                    } else {
-                        alert("Failed to update order status: " + data.message);
-                    }
-                })
-                .catch(error => {
-                    console.error("Error updating order status:", error);
-                    alert("Something went wrong. Please try again.");
-                });
-            
-    };
-
-});
-
-document.getElementById('returntoOrderQue_btn').addEventListener('click', function () {
-    window.location.href = '/backend/cashier/order_queue_loader';
 });

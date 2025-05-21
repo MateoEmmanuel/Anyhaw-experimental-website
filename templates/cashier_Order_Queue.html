@@ -61,17 +61,7 @@
                             {% elif order.order_type == 'dine-in' %}
                                 <p><strong>Order Type:</strong> Dine-In</p>
                             {% endif %}
-
-                            {% if order.order_type == 'delivery' %}
-                                <p><strong>Delivery Address:</strong> {{ order.delivery_address }}</p>
-                                <p><strong>Yes</strong></p>
-                            {% elif order.order_type == 'take-out' %}
-                                <p><strong>Takeout Number:</strong> {{ order.takeout_number }}</p>
-                                <p><strong>Paid:</strong> {{ 'No' if order.gcash_payed is none else order.gcash_payed }}</p>
-                            {% elif order.order_type == 'dine-in' %}
-                                <p><strong>Table Number:</strong> {{ order.table_number }}</p>
-                                <p><strong>Paid:</strong> {{ 'No' if order.gcash_payed is none else order.gcash_payed }}</p>
-                            {% endif %}
+                            
                             <p><strong>Status:</strong> {{ order.order_status }}</p>
 
                             {% set ns = namespace(grand_total=0) %}

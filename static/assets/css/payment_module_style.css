@@ -257,3 +257,9 @@ nav a {
     padding:20px; 
     z-index:1000;
 }
+
+/* Optional: style for selected discount button */
+.discount-btn.selected {
+    background-color: #4CAF50;
+    color: white;
+}
