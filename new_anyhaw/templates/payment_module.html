@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Any-Haw Litson Manok</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/payment_module_style.css') }}">
+    <script src="{{ url_for('static', filename='assets/js/payment_module_scripts.js') }}" defer></script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='logoicon.ico') }}">
+</head>
+<body>
+    <header>
+        <div class="logo-title">
+            <a href="/backend/cashier/cashier_loader">
+                <img src="{{ url_for('static', filename='assets/images/navbar_logo.png') }}" alt="Any-Haw Logo">
+            </a>
+        </div>
+        <nav>
+            <a href="#" id="Home_btn">HOME</a>
+            <a href="#" id="aboutUsLink_cashier">ABOUT US</a>
+        </nav>
+    </header>
+    <section class="main-section">
+        <div class="main-content">
+            <div class="main-content-inner">
+                <!-- Top half: Order Details and Order List -->
+                <div class="order-details-section">
+                    <h2>Order Details</h2>
+                    <div id="orderList">
+                        <div class="order-card">
+                            <p><strong>Order #:</strong> {{ order.order_ID }}</p>
+                            <p><strong>Transaction ID:</strong> {{ order.transaction_id }}</p>
+                            <p><strong>Table:</strong> {{ 'Delivery' if order.order_type == 'delivery' else order.table_number }}</p>
+                            <p><strong>Status:</strong> {{ order.order_status }}</p>
+                            <ul>
+                                {% for item in items %}
+                                <li>
+                                    {{ item.Item_Name }} - Qty: {{ item.Quantity }} @ ₱{{ '%.2f' | format(item.Price_Per_Item) }} = ₱{{ '%.2f' | format(item.Quantity * item.Price_Per_Item) }}
+                                </li>
+                                {% endfor %}
+                            </ul>
+                            <p><strong>Total Amount Due:</strong> ₱{{ '%.2f' | format(total_price) }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bottom half: Payment Procedure -->
+                <div class="payment-module">    
+                    <h2>Payment Module</h2>
+                    <form id="paymentForm">
+                        <input type="hidden" id="orderId" value="{{ order.order_ID }}">
+                        <div class="amount-due-summary">
+                            <p><strong>Amount to Pay:</strong> ₱{{ '%.2f' | format(total_price) }}</p>
+                        </div>
+
+                        <div id="payment-option" class="payment-method">
+                            <label>Select Payment Method:</label>
+                            <div>
+                                <button type="button" class="payment-btn" id="cash-option">Cash</button>
+                                <button type="button" class="payment-btn" id="gcash-option">Gcash</button>
+                            </div>
+                            <input type="hidden" id="paymentMethod" name="paymentMethod" required>
+                        </div>
+
+                        <div id="cashInputRow" style="display: none;">
+                            <label for="cashGiven">Customer Paid:</label>
+                            <input type="number" id="cashGiven" name="cashGiven" placeholder="₱0.00" min="0" step="0.01">
+                        </div>
+
+                        <div id="changeRow" style="display: none;">
+                            <label for="change">Change:</label>
+                            <input type="text" id="change" name="change" placeholder="₱0.00" step="0.01" readonly>
+                        </div>
+
+                        <div id="qrContainer" style="display: none; text-align: center;">
+                            <label>Scan to Pay:</label><br>
+                            <img src="{{ url_for('static', filename='assets/images/Gcash_QR_CODE.png') }}" alt="GCash QR Code" style="width: 200px; height: 200px;">
+                        </div>
+
+                        <button type="submit" id="proceedToprintingBtn">Enter</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- about us testing phase -->
+    <div id="aboutUsUI_cashier" class="floating-ui aboutus-ui" style="display: none;">
+        <div class="floating-aboutus-inner">
+            <div id="aboutUsContent" class="aboutus-content">
+                <p>We are Any-Haw, serving the best Litson Manok in town since 2020!</p>
+            </div>
+            <button class="white-close-btn" id="closeAboutUsBtn">X</button>
+        </div>
+    </div>
+
+    <div id="printConfirmModal" class="confirmmodal">
+        <p>Do you want to print the receipt?</p>
+        <button id="modalYesBtn">Yes</button>
+        <button id="modalNoBtn">No</button>
+        <button id="modalCancelBtn">Cancel</button>
+    </div>
+
+    <!-- Optional overlay behind modal -->
+    <div id="modalOverlay" class="modaloverlay"></div>
+</body>
+</html>

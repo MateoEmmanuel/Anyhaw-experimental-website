@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Any-Haw Litson Manok</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/cashier_system_style.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <script src="{{ url_for('static', filename='assets/js/cashier_system_scripts.js') }}" defer></script>
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='logoicon.ico') }}">
+</head>
+<body>
+    <header>
+        <div class="logo-title">
+            <a href="/backend/cashier/cashier_loader">
+                <img src="{{ url_for('static', filename='assets/images/navbar_logo.png') }}" alt="Any-Haw Logo">
+            </a>
+        </div>
+        <nav>
+            <a href="#" id="Home_btn">HOME</a>  <!-- ✅ CORRECT -->
+            <a href="#" id="aboutUsLink_cashier">ABOUT US</a>
+        </nav>
+    </header>
+    <section class="main-section">
+        <aside class="sidebar">
+            <ul class="options">
+                <li class="options-item">
+                    <a>Ordering and Processing</a>
+                    <ul class="sub-options">
+                        <li><a href="#" id="manualordering_btn">Manual Ordering</a></li>
+                        <li><a href="#" id="orderque_btn">Order Queue</a></li>
+                        <li><a href="#" id="orderstatus_btn">Order Status</a></li>
+                        <li><a href="#"id="deliverystatus_btn">Delivery Status</a></li>
+                    </ul>
+                </li>
+                <li class ="options-item">
+                    <a href="#" id="loadpaymentmodule_btn">Payment Module</a>
+                </li>
+                <li class="options-item">
+                    <a href="#" id="transactionhistory_btn">Transaction History</a>
+                    <ul class="sub-options">
+                        <li><a href="#" id="dineinhistory_btn">Dine-In History</a></li>
+                        <li><a href="#" id="takeouthistory_btn">Take-Out History</a></li>
+                        <li><a href="#" id="deliveryhistory_btn">Delivery History</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </aside>
+
+        <div class="main-content">
+            <div class="main-content-inner">
+                <p>blacnk space</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- about us testing phase -->
+    <div id="aboutUsUI_cashier" class="floating-ui aboutus-ui" style="display: none;">
+        <div class="floating-aboutus-inner">
+            <div id="aboutUsContent" class="aboutus-content">
+                <p>We are Any-Haw, serving the best Litson Manok in town since 2020!</p>
+            </div>
+            <button class="white-close-btn" id="closeAboutUsBtn">X</button>
+        </div>
+    </div>
+
+</body>
+</html>
