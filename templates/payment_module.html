@@ -71,7 +71,9 @@
                         <input type="hidden" id="orderId" value="{{ order.order_ID }}">
                         <div class="amount-due-summary">
                             
-                            <label for="totalamountdue">Total Order Costs: ₱{{ '%.2f' | format(total_price) }}</label> 
+                            <label for="baseAmount">Total Order Costs:</label>
+                            <input type="text" id="baseAmount" value="{{ '%.2f' | format(total_price) }}" readonly class="form-control">
+
 
                             
                             <div id="deliveryrow" style="display: none;">
@@ -110,6 +112,7 @@
                             <div id="selected-discount-display" style="display: none; margin: 8px;">
                                 <label for="discountDisplay">Selected Discount:</label>
                                 <input type="text" id="discountDisplay" readonly value="0%" style="width: 80px;">
+                                <input type="text" id="discountedPrice" readonly value="0" placeholder="₱0.00" style="width: 80px;">
                             </div>
 
                             <!-- Hidden inputs for form submission -->
@@ -130,7 +133,6 @@
                             <br>
                             <img src="{{ url_for('static', filename='assets/images/Gcash_QR_CODE.png') }}" alt="GCash QR Code" style="width: 200px; height: 200px;">
                         </div>
-                        <button type="button" id="computePaymentBtn">Compute</button>
 
                         <button type="submit" id="proceedToprintingBtn">Enter</button>
                     </form>

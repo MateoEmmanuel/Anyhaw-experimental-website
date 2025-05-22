@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, url_for
+from flask import Blueprint, render_template, request, redirect, url_for,jsonify
 from backend.dbconnection import create_connection
 
 cashier_orderstatus_bp = Blueprint('cashier_orderstatus', __name__)
@@ -11,7 +11,9 @@ def order_queue_loader():
     try:
         # Get only 'Pending' orders including order_type and order_time
         cursor.execute("""
-			SELECT order_ID, transaction_id, table_number, order_status, order_type, order_time,customer 
+            SELECT order_ID, transaction_id, table_number, order_status, order_type,
+                DATE_FORMAT(order_time, '%M %d %Y / %h:%i:%s %p') AS order_time, customer_id,
+                       guest_id,guest_name,guest_location, delivery_payment_status
             FROM processing_orders 
             WHERE order_status = 'preparing'
             ORDER BY order_time DESC
@@ -63,6 +65,31 @@ def order_queue_loader():
                 item['Item_Name'] = item_name
                 items.append(item)
 
+            customer_id = order['customer_id']
+            guest_id = order['guest_id']
+
+            if customer_id:
+                cursor.execute("""
+                    SELECT ca.Customer_Name, ca.contact_number, cl.location
+                    FROM customer_accounts ca
+                    LEFT JOIN customer_locations cl ON ca.customer_id = cl.customer_id
+                    WHERE ca.customer_id = %s
+                """, (customer_id,))
+                result = cursor.fetchone()
+                customer_name = result['Customer_Name'] if result else "Unknown"
+                customer_contact = result['contact_number'] if result else "Unknown"
+                customer_location = result['location'] if result else "Unknown"
+
+            elif guest_id:
+                customer_name = order['guest_name']
+                customer_location = order['guest_location']
+                cursor.execute("SELECT contact_number FROM guest_accounts WHERE guest_id = %s", (guest_id,))
+                result = cursor.fetchone()
+                customer_contact = result['contact_number'] if result else "Unknown"
+
+            else:
+                return jsonify(message="No customer or guest ID found for order."), 400
+
             orders.append({
                 'order_id': order['order_ID'],
                 'transaction_id': order['transaction_id'],
@@ -70,9 +97,13 @@ def order_queue_loader():
                 'order_status': order['order_status'],
                 'order_type': order['order_type'],
                 'order_time': order['order_time'],
-                'customer': order['customer'],
+                'customer': customer_name,
+                'customer_name': customer_name,
+                'customer_contact': customer_contact,
+                'customer_location': customer_location,
                 'items': items
             })
+
 
         return render_template('cashier_orderstatus.html', orders=orders)
 

@@ -13,8 +13,10 @@ document.addEventListener("DOMContentLoaded", function () {
     const discountButtons = document.querySelectorAll('.discount-btn');
     const discountPercentInput = document.getElementById("discountPercent");
     const discountDisplay = document.getElementById("discountDisplay");
+    const discountAmount = document.getElementById("discountAmount")
+    const baseAmountInput = document.getElementById("baseAmount");
+    const baseAmount = parseFloat(baseAmountInput.value) || 0;
 
-    const baseAmount = parseFloat("{{ '%.2f' | format(total_price) }}".replace('₱', '')) || 0;
 
     function getDiscountedAmount() {
         const discountPercent = parseFloat(discountPercentInput.value) || 0;
@@ -50,6 +52,7 @@ document.addEventListener("DOMContentLoaded", function () {
             document.getElementById("discountID").value = id;
 
             discountDisplay.value = percent + "%";
+            discountedPrice.value = baseAmount * (percent / 100);
             document.getElementById("selected-discount-display").style.display = percent > 0 ? "block" : "none";
 
             discountButtons.forEach(btn => btn.classList.remove("selected"));
@@ -80,27 +83,6 @@ document.addEventListener("DOMContentLoaded", function () {
         window.location.href = '/backend/cashier/order_queue_loader';
     });
 
-    document.getElementById('computePaymentBtn').addEventListener('click', function () {
-        const totalDue = parseFloat("{{ '%.2f' | format(total_price) }}");
-        const discountPercent = parseFloat(discountPercentInput.value) || 0;
-        const cashGiven = parseFloat(cashGivenInput.value) || 0;
-        const deliveryFee = parseFloat(deliveryfeeinput?.value || 0);
-
-        const discountAmount = totalDue * (discountPercent / 100);
-        const discountedTotal = totalDue - discountAmount;
-        const totalToPay = discountedTotal + deliveryFee;
-
-        if (totalAmountoutput) totalAmountoutput.value = `₱${totalToPay.toFixed(2)}`;
-
-        if (paymentMethodInput.value === 'cash') {
-            const change = cashGiven - totalToPay;
-            if (changeInput) {
-                changeInput.value = `₱${change.toFixed(2)}`;
-                changeRow.style.display = 'block';
-            }
-        }
-    });
-
     function updateChangeDisplay() {
         const cash = parseFloat(cashGivenInput.value) || 0;
         const discountPercent = parseFloat(discountPercentInput.value) || 0;
@@ -113,6 +95,34 @@ document.addEventListener("DOMContentLoaded", function () {
         const change = cash - totalToPay;
         if (changeInput) {
             changeInput.value = `₱${change.toFixed(2)}`;
+            changeRow.style.display = 'block'; // Show the change row when there's a change to display
         }
     }
+
+    
 });
+
+document.getElementById('paymentForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    const form = e.target;
+    const formData = new FormData(form);
+
+    try {
+        const response = await fetch(form.action, {
+            method: 'POST',
+            body: formData
+        });
+
+        const data = await response.json();
+
+        if (data.status === 'success') {
+            window.location.href = '/backend/cashier/order_queue_loader';
+        } else {
+            alert('Error: ' + (data.message || 'Unknown error'));
+        }
+    } catch (err) {
+        alert('Error submitting payment: ' + err.message);
+    }
+});
+

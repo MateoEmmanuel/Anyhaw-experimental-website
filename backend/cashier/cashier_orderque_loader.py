@@ -22,10 +22,11 @@ def order_queue_loader():
         orders_data = cursor.fetchall()
         
         orders = []
+
         for order in orders_data:
             order_id = order['order_ID']
 
-            # Get items in this order
+            # 🔄 Move items logic INSIDE this loop
             cursor.execute("""
                 SELECT item_id, Item_Type, Quantity, Price_Per_Item, Total_Item_Price 
                 FROM processing_order_items 
@@ -66,11 +67,10 @@ def order_queue_loader():
                 item['Item_Name'] = item_name
                 items.append(item)
 
-            
-        # Get customer names
-        for order in orders_data:
+            # 🔄 Move customer info logic here too
             customer_id = order['customer_id']
             guest_id = order['guest_id']
+
             if customer_id:
                 cursor.execute("""
                     SELECT ca.Customer_Name, ca.contact_number, cl.location
@@ -79,19 +79,19 @@ def order_queue_loader():
                     WHERE ca.customer_id = %s
                 """, (customer_id,))
                 result = cursor.fetchone()
-                order['customer_name'] = result['Customer_Name'] if result else "Unknown"
-                order['customer_contact'] = result['contact_number'] if result else "Unknown"
-                order['customer_location'] = result['location'] if result else "Unknown"
+                customer_name = result['Customer_Name'] if result else "Unknown"
+                customer_contact = result['contact_number'] if result else "Unknown"
+                customer_location = result['location'] if result else "Unknown"
 
             elif guest_id:
-                order['customer_name'] = order['guest_name']
-                order['customer_location'] = order['guest_location']
+                customer_name = order['guest_name']
+                customer_location = order['guest_location']
                 cursor.execute("SELECT contact_number FROM guest_accounts WHERE guest_id = %s", (guest_id,))
                 result = cursor.fetchone()
-                order['customer_contact'] = result['contact_number'] if result else "Unknown"
-            else:
-                return jsonify(message = "No customer or guest ID found for order."), 400
+                customer_contact = result['contact_number'] if result else "Unknown"
 
+            else:
+                return jsonify(message="No customer or guest ID found for order."), 400
 
             orders.append({
                 'order_id': order['order_ID'],
@@ -100,10 +100,10 @@ def order_queue_loader():
                 'order_status': order['order_status'],
                 'order_type': order['order_type'],
                 'order_time': order['order_time'],
-                'customer': order['customer_name'],  # This exists and is fetched correctly above
-                'customer_name': order['customer_name'],
-                'customer_contact': order['customer_contact'],
-                'customer_location': order['customer_location'],
+                'customer': customer_name,
+                'customer_name': customer_name,
+                'customer_contact': customer_contact,
+                'customer_location': customer_location,
                 'items': items
             })
 
@@ -116,6 +116,7 @@ def order_queue_loader():
     finally:
         cursor.close()
         conn.close()
+
 
 @cashier_orderqueue_bp.route('/update_prep_status', methods=['POST'])
 def update_prep_status():

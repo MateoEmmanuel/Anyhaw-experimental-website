@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for, jsonify, session
 from backend.dbconnection import create_connection
 from backend.cashier.reciepts.print_reciept import print_receipt_by_order_id
+from decimal import Decimal
 
 cashier_payment_bp = Blueprint('cashier_payment', __name__, url_prefix='/cashier')
 
@@ -10,34 +11,59 @@ def payment_module(order_id):
     cursor = conn.cursor(dictionary=True)
 
     if request.method == 'POST':
-        payment_method = request.form['paymentMethod']
-        cash_given = request.form.get('cashGiven', type=float)
-        discount_percent = request.form.get('discountPercent', type=float) or 0.0
+        try:
+            payment_method = request.form['paymentMethod']
+            cash_given = request.form.get('cashGiven', type=float)
+            discount_percent = request.form.get('discountPercent', type=float) or 0.0
+            discount_percent = Decimal(discount_percent)
+            
+            cursor.execute("SELECT Quantity, Price_Per_Item FROM processing_order_items WHERE order_ID = %s", (order_id,))
+            items = cursor.fetchall()
+            if not items:
+                cursor.close()
+                conn.close()
+                return jsonify(status='error', message='No order items found'), 400
 
-                # Re-fetch total
-        cursor.execute("SELECT Quantity, Price_Per_Item FROM processing_order_items WHERE order_ID = %s", (order_id,))
-        items = cursor.fetchall()
-        total_price = sum(item['Price_Per_Item'] * item['Quantity'] for item in items)
+            total_price = sum(Decimal(item['Price_Per_Item']) * item['Quantity'] for item in items)
+            discounted_total = total_price * (Decimal('1') - discount_percent / Decimal('100'))
 
-                # Apply discount
-        discounted_total = total_price * (1 - discount_percent / 100)
+            if payment_method == "gcash":
+                return jsonify(status='error', message='GCash payment not implemented yet'), 400
 
-        if payment_method == 'cash-option' and cash_given < discounted_total:
-                    cursor.close()
-                    conn.close()
-                    return "Insufficient cash provided", 400
+            elif payment_method == 'cash-option' and (cash_given is None or Decimal(cash_given) < discounted_total):
+                cursor.close()
+                conn.close()
+                return jsonify(status='error', message='Insufficient cash provided'), 400
 
-        # Update order status
-        cursor.execute("UPDATE processing_orders SET order_status = 'Preparing' WHERE order_ID = %s", (order_id,))
-        conn.commit()
+            cursor.execute("SELECT transaction_id FROM processing_orders WHERE order_ID = %s", (order_id,))
+            transaction_row = cursor.fetchone()
+            if not transaction_row or not transaction_row['transaction_id']:
+                cursor.close()
+                conn.close()
+                return jsonify(status='error', message='Missing transaction ID'), 400
+            transaction_id = transaction_row['transaction_id']
 
-        cursor.close()
-        conn.close()
-        return redirect(url_for('cashier_payment.payment_success', order_id=order_id))
+            try:
+                log_result = log_order_transaction(order_id, discount_percent, payment_method, transaction_id)
+                if log_result['status'] != 'success':
+                    print(f"Warning: log_order_transaction returned error: {log_result.get('message')}")
+            except Exception as e:
+                print(f"Warning: log_order_transaction raised exception: {e}")
 
-    conn = create_connection()
-    cursor = conn.cursor(dictionary=True)
-    # GET method
+            cursor.execute("UPDATE processing_orders SET order_status = 'preparing' WHERE order_ID = %s", (order_id,))
+            conn.commit()
+
+            cursor.close()
+            conn.close()
+            return jsonify(status='success', transaction_id=transaction_id)
+
+        except Exception as e:
+            cursor.close()
+            conn.close()
+            return jsonify(status='error', message=str(e)), 500
+
+
+    # GET method part stays unchanged
     cursor.execute("SELECT * FROM processing_orders WHERE order_ID = %s AND order_status = 'Pending'", (order_id,))
     order = cursor.fetchone()
 
@@ -75,17 +101,17 @@ def payment_module(order_id):
     items = []
 
     for item in raw_items:
-        item_name = "ERROR-RETRIEVEING ITEM NAME"
+        item_name = "ERROR-RETRIEVING ITEM NAME"
         item_type = item.get('Item_Type')
         item_id = item.get('item_id')
 
-        if item_type in ('normal'):
+        if item_type == 'normal':
             cursor.execute("SELECT Food_Name FROM food_list WHERE Food_ID = %s", (item_id,))
             result = cursor.fetchone()
             if result:
                 item_name = result['Food_Name']
 
-        elif item_type in ('dessert'):
+        elif item_type == 'dessert':
             cursor.execute("SELECT Dessert_Name FROM Dessert_list WHERE Dessert_ID = %s", (item_id,))
             result = cursor.fetchone()
             if result:
@@ -106,117 +132,99 @@ def payment_module(order_id):
         item['Item_Name'] = item_name
         items.append(item)
 
-    total_price = sum(item['Price_Per_Item'] * item['Quantity'] for item in items)
-
-        # Get available discounts
+    # Get available discounts
     cursor.execute("SELECT Discount_ID, Discount_Name, Discount_Percent FROM Discount_Table")
     discounts = cursor.fetchall()
+
+    cursor.execute("""
+        SELECT SUM(Total_Item_Price) AS total_price
+        FROM processing_order_items
+        WHERE order_ID = %s
+    """, (order_id,))
+    result = cursor.fetchone()
+    total_price = result['total_price'] if result['total_price'] else 0.0
 
     cursor.close()
     conn.close()
 
-
     return render_template('payment_module.html', order=order, items=items, total_price=total_price, discounts=discounts)
 
 
-@cashier_payment_bp.route('/update_order_status', methods=['POST'])
-def update_order_status_route():
-    data = request.get_json()
-    order_id = data.get('order_id')
-    payment_method = data.get('payment_method')  # 'cash' or 'online'
-    discount_id = data.get('discount_id')  # Optional
-    gcash_ref = data.get('gcash_ref') if payment_method == 'online' else None
-
-    if not order_id or not payment_method:
-        return jsonify(success=False, message="Missing required data"), 400
-
-    cashier_id = session.get('cashier_id')
-    if not cashier_id:
-        return jsonify(success=False, message="Cashier not logged in"), 403
+def log_order_transaction(order_id, discount_percent, payment_method, transaction_id):
+    conn = create_connection()
+    cursor = conn.cursor(dictionary=True)
 
     try:
-        conn = create_connection()
-        cursor = conn.cursor(dictionary=True)
-
-        # Get order
+        # Get order details and order_list_id
         cursor.execute("SELECT * FROM processing_orders WHERE order_ID = %s", (order_id,))
         order = cursor.fetchone()
         if not order:
-            return jsonify(success=False, message="Order not found"), 404
+            raise Exception("Order not found.")
 
-        order_type = order['order_type']  # dine-in / take-out / delivery
+        customer_id = order.get('customer_id')
+        guest_id = order.get('guest_id')
+        order_list_id = order.get('order_list_id')
 
-        # Get order items
-        cursor.execute("SELECT * FROM processing_order_items WHERE order_ID = %s", (order_id,))
-        items = cursor.fetchall()
-        if not items:
-            return jsonify(success=False, message="No order items found"), 404
-
-        # Always update the status
-        cursor.execute("UPDATE processing_orders SET order_status = 'preparing' WHERE order_ID = %s", (order_id,))
-        cursor.execute("UPDATE processing_order_items SET Prep_status = 'preparing' WHERE order_ID = %s", (order_id,))
-
-        # Only insert and print for dine-in / take-out
-        if order_type in ['dine-in', 'take-out']:
-            total_price = sum(item['Total_Item_Price'] for item in items)
-
-            # Apply discount if provided
-            if discount_id:
-                cursor.execute("SELECT Discount_Value FROM Discount_Table WHERE Discount_ID = %s", (discount_id,))
-                discount_row = cursor.fetchone()
-                if discount_row:
-                    discount_value = float(discount_row['Discount_Value'])
-                    total_price *= (1 - discount_value / 100)
-
-            # Insert into Ordered_Logs
-            cursor.execute("""
-                INSERT INTO Ordered_Logs (
-                    Transaction_ID, customer_id, customer_account_type, cashier_id, Discount_ID,
-                    Total_Price, payment_method, gcash_ref, order_type, status
-                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, 'paid')
-            """, (
-                str(order['transaction_id']),
-                order['customer_id'],
-                'guest' if order['guest_id'] else 'customer',
-                cashier_id,
-                discount_id,
-                round(total_price, 2),
-                payment_method,
-                gcash_ref,
-                'walk-in'
-            ))
-
-            or_logs_id = cursor.lastrowid
-
-            # Insert items
-            for item in items:
-                cursor.execute("""
-                    INSERT INTO Ordered_Items (
-                        Or_Logs_ID, item_id, Item_Type, Quantity, Price_Per_Item
-                    ) VALUES (%s, %s, %s, %s, %s)
-                """, (
-                    or_logs_id,
-                    item['item_id'],
-                    item['Item_Type'],
-                    item['Quantity'],
-                    item['Price_Per_Item']
-                ))
-
-            conn.commit()
-            cursor.close()
-            conn.close()
-
-            # ✅ Print receipt
-            print_receipt_by_order_id(or_logs_id)
-
+        # Determine customer_id and account_type
+        if customer_id:
+            customer_id_to_use = customer_id
+            account_type = 'customer'
         else:
-            # Just commit the status update for delivery
-            conn.commit()
-            cursor.close()
-            conn.close()
+            customer_id_to_use = None  # Because guest_id is not a valid customer_id for FK
+            account_type = 'guest'
 
-        return jsonify(success=True)
+
+        cashier_id = session.get('user_id')
+
+        # Get Discount ID if applicable
+        discount_id = None
+        if discount_percent > 0:
+            cursor.execute("SELECT Discount_ID FROM Discount_Table WHERE Discount_Percent = %s", (discount_percent,))
+            discount_row = cursor.fetchone()
+            if discount_row:
+                discount_id = discount_row['Discount_ID']
+
+        # Re-calculate total after discount
+        cursor.execute("SELECT Quantity, Price_Per_Item FROM processing_order_items WHERE order_ID = %s", (order_id,))
+        items = cursor.fetchall()
+        total_price = sum(Decimal(item['Price_Per_Item']) * item['Quantity'] for item in items)
+        discounted_total = total_price * (Decimal('1') - discount_percent / Decimal('100'))
+
+        payment_method_clean = payment_method.replace("-option", "")
+        order_type = 'walk-in'
+
+        # Call the stored procedure with the actual OUT variable name
+        cursor.execute("SET @out_log_id = 0;")
+        cursor.callproc('loging_walk_in_order', (
+            order_id,
+            transaction_id,
+            cashier_id,
+            discount_id,
+            round(discounted_total, 2),
+            payment_method_clean,
+            order_type,
+            customer_id_to_use,
+            account_type,
+            '@out_log_id'  # pass variable name to the stored procedure
+        ))
+        # Fetch the OUT parameter value from the session variable
+        cursor.execute("SELECT @out_log_id AS Ordered_Log_ID")
+        out_row = cursor.fetchone()
+        if not out_row or not out_row.get('Ordered_Log_ID'):
+            raise Exception("Failed to get Ordered_Logs ID.")
+        or_logs_id = out_row['Ordered_Log_ID']
+        # Call second procedure to log order items
+        cursor.callproc('log_order_items', (
+            order_list_id,
+            or_logs_id
+        ))
+        conn.commit()
+        return {'status': 'success'}
 
     except Exception as e:
-        return jsonify(success=False, message=str(e)), 500
+        conn.rollback()
+        return {'status': 'error', 'message': str(e)}
 
+    finally:
+        cursor.close()
+        conn.close()
