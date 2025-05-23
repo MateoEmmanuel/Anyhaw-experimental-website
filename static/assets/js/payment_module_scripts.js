@@ -47,9 +47,11 @@ document.addEventListener("DOMContentLoaded", function () {
         button.addEventListener("click", () => {
             const percent = parseFloat(button.getAttribute("data-percent")) || 0;
             const id = button.getAttribute("data-id");
+            const name = button.textContent.trim();
 
             document.getElementById("discountPercent").value = percent;
             document.getElementById("discountID").value = id;
+            document.getElementById("discountName").value = name;
 
             discountDisplay.value = percent + "%";
             discountedPrice.value = baseAmount * (percent / 100);
@@ -61,6 +63,7 @@ document.addEventListener("DOMContentLoaded", function () {
             updateChangeDisplay();
         });
     });
+
 
     document.getElementById('cash-option').addEventListener('click', function () {
         resetPaymentFields();

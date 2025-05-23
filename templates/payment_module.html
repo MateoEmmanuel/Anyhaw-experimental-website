@@ -108,14 +108,18 @@
                                 <button type="button" class="discount-btn" data-id="0" data-percent="0">No Discount</button>
                             </div>
 
+                            
+
                             <!-- 👇 Discount display goes directly under discount buttons -->
                             <div id="selected-discount-display" style="display: none; margin: 8px;">
                                 <label for="discountDisplay">Selected Discount:</label>
                                 <input type="text" id="discountDisplay" readonly value="0%" style="width: 80px;">
+                                <label for="discountedtotal">Money Discounted:</label>
                                 <input type="text" id="discountedPrice" readonly value="0" placeholder="₱0.00" style="width: 80px;">
                             </div>
 
                             <!-- Hidden inputs for form submission -->
+                            <input type="hidden" name="discountName" id="discountName" value="No Discount">
                             <input type="hidden" name="discountID" id="discountID" value="0">
                             <input type="hidden" name="discountPercent" id="discountPercent" value="0">
 

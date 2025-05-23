@@ -150,7 +150,7 @@ def payment_module(order_id):
     return render_template('payment_module.html', order=order, items=items, total_price=total_price, discounts=discounts)
 
 
-def log_order_transaction(order_id, discount_percent, payment_method, transaction_id):
+def log_order_transaction(order_id, discount_id, payment_method, transaction_id):
     conn = create_connection()
     cursor = conn.cursor(dictionary=True)
 
@@ -165,37 +165,44 @@ def log_order_transaction(order_id, discount_percent, payment_method, transactio
         guest_id = order.get('guest_id')
         order_list_id = order.get('order_list_id')
 
-        # Determine customer_id and account_type
         if customer_id:
             customer_id_to_use = customer_id
             account_type = 'customer'
         else:
-            customer_id_to_use = None  # Because guest_id is not a valid customer_id for FK
+            customer_id_to_use = None
             account_type = 'guest'
-
 
         cashier_id = session.get('user_id')
 
-        # Get Discount ID if applicable
-        discount_id = None
-        if discount_percent > 0:
-            cursor.execute("SELECT Discount_ID FROM Discount_Table WHERE Discount_Percent = %s", (discount_percent,))
-            discount_row = cursor.fetchone()
-            if discount_row:
-                discount_id = discount_row['Discount_ID']
+        print("Discount ID: ", discount_id)
+        print("Discount percent: ", discount_percent)
+        print("Discount Total", discounted_total)
 
-        # Re-calculate total after discount
+        # Convert discount_id to int or None
+        discount_id = int(discount_id) if discount_id and discount_id != '0' else None
+
+        # Re-calculate total after discount (fetching percent by ID)
         cursor.execute("SELECT Quantity, Price_Per_Item FROM processing_order_items WHERE order_ID = %s", (order_id,))
         items = cursor.fetchall()
         total_price = sum(Decimal(item['Price_Per_Item']) * item['Quantity'] for item in items)
-        discounted_total = total_price * (Decimal('1') - discount_percent / Decimal('100'))
+
+        # If there's a discount, fetch its percent
+        if discount_id:
+            cursor.execute("SELECT Discount_Percent FROM Discount_Table WHERE Discount_ID = %s", (discount_id,))
+            percent_row = cursor.fetchone()
+            if percent_row:
+                discount_percent = Decimal(percent_row['Discount_Percent']) / Decimal('100')
+            else:
+                raise Exception("Invalid discount ID.")
+        else:
+            discount_percent = Decimal('0')
+
+        discounted_total = total_price * (Decimal('1') - discount_percent)
 
         payment_method_clean = payment_method.replace("-option", "")
         order_type = 'walk-in'
 
-        # Call the stored procedure with the actual OUT variable name
-        cursor.execute("SET @out_log_id = 0;")
-        cursor.callproc('loging_walk_in_order', (
+        args = (
             order_id,
             transaction_id,
             cashier_id,
@@ -205,19 +212,15 @@ def log_order_transaction(order_id, discount_percent, payment_method, transactio
             order_type,
             customer_id_to_use,
             account_type,
-            '@out_log_id'  # pass variable name to the stored procedure
-        ))
-        # Fetch the OUT parameter value from the session variable
-        cursor.execute("SELECT @out_log_id AS Ordered_Log_ID")
-        out_row = cursor.fetchone()
-        if not out_row or not out_row.get('Ordered_Log_ID'):
+            0  # OUT param
+        )
+
+        result_args = cursor.callproc('loging_walk_in_order', args)
+        or_logs_id = result_args[9]
+        if not or_logs_id:
             raise Exception("Failed to get Ordered_Logs ID.")
-        or_logs_id = out_row['Ordered_Log_ID']
-        # Call second procedure to log order items
-        cursor.callproc('log_order_items', (
-            order_list_id,
-            or_logs_id
-        ))
+
+        cursor.callproc('log_order_items', (order_list_id, or_logs_id))
         conn.commit()
         return {'status': 'success'}
 
