@@ -46,7 +46,7 @@ document.addEventListener("DOMContentLoaded", function () {
     discountButtons.forEach(button => {
         button.addEventListener("click", () => {
             const percent = parseFloat(button.getAttribute("data-percent")) || 0;
-            const id = button.getAttribute("data-id");
+            const id = parseInt(button.getAttribute("data-id")); 
             const name = button.textContent.trim();
 
             document.getElementById("discountPercent").value = percent;
@@ -54,7 +54,7 @@ document.addEventListener("DOMContentLoaded", function () {
             document.getElementById("discountName").value = name;
 
             discountDisplay.value = percent + "%";
-            discountedPrice.value = baseAmount * (percent / 100);
+            discountedPrice.value = baseAmount * percent;
             document.getElementById("selected-discount-display").style.display = percent > 0 ? "block" : "none";
 
             discountButtons.forEach(btn => btn.classList.remove("selected"));
@@ -91,7 +91,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const discountPercent = parseFloat(discountPercentInput.value) || 0;
         const deliveryFee = parseFloat(deliveryfeeinput?.value || 0);
 
-        const discountAmount = baseAmount * (discountPercent / 100);
+        const discountAmount = baseAmount * discountPercent;
         const discountedTotal = baseAmount - discountAmount;
         const totalToPay = discountedTotal + deliveryFee;
 

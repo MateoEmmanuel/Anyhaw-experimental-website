@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for, jsonify, session
 from backend.dbconnection import create_connection
 from backend.cashier.reciepts.print_reciept import print_receipt_by_order_id
-from decimal import Decimal
+from decimal import Decimal, ROUND_UP
 
 cashier_payment_bp = Blueprint('cashier_payment', __name__, url_prefix='/cashier')
 
@@ -174,55 +174,72 @@ def log_order_transaction(order_id, discount_id, payment_method, transaction_id)
 
         cashier_id = session.get('user_id')
 
-        print("Discount ID: ", discount_id)
-        print("Discount percent: ", discount_percent)
-        print("Discount Total", discounted_total)
+        # Convert discount ID from form (if needed)
+        discount_id = request.form.get('discountID')
+        try:
+            discount_id = int(discount_id)
+            if discount_id == 0:
+                discount_id = None
+        except (ValueError, TypeError):
+            discount_id = None
 
-        # Convert discount_id to int or None
-        discount_id = int(discount_id) if discount_id and discount_id != '0' else None
-
-        # Re-calculate total after discount (fetching percent by ID)
+        # Get total price
         cursor.execute("SELECT Quantity, Price_Per_Item FROM processing_order_items WHERE order_ID = %s", (order_id,))
         items = cursor.fetchall()
         total_price = sum(Decimal(item['Price_Per_Item']) * item['Quantity'] for item in items)
 
-        # If there's a discount, fetch its percent
+        # Discount
         if discount_id:
             cursor.execute("SELECT Discount_Percent FROM Discount_Table WHERE Discount_ID = %s", (discount_id,))
             percent_row = cursor.fetchone()
             if percent_row:
-                discount_percent = Decimal(percent_row['Discount_Percent']) / Decimal('100')
+                discount_percent = Decimal(percent_row['Discount_Percent'])
             else:
                 raise Exception("Invalid discount ID.")
         else:
-            discount_percent = Decimal('0')
+            discount_percent = Decimal('1.00')
 
-        discounted_total = total_price * (Decimal('1') - discount_percent)
-
+        discounted_total = (total_price * discount_percent).quantize(Decimal('0.01'), rounding=ROUND_UP)
         payment_method_clean = payment_method.replace("-option", "")
         order_type = 'walk-in'
 
-        args = (
+        # --- FIXED OUT PARAM HANDLING ---
+        # 1. Set initial value for the OUT variable
+        cursor.execute("SET @p_or_logs_id = 0")
+
+        # Call the procedure with the OUT variable name
+        cursor.execute("CALL loging_walk_in_order(%s, %s, %s, %s, %s, %s, %s, %s, %s, @p_or_logs_id)", (
             order_id,
             transaction_id,
             cashier_id,
             discount_id,
-            round(discounted_total, 2),
+            discounted_total,
             payment_method_clean,
             order_type,
             customer_id_to_use,
             account_type,
-            0  # OUT param
-        )
+        ))
 
-        result_args = cursor.callproc('loging_walk_in_order', args)
-        or_logs_id = result_args[9]
+        # Now fetch the OUT value
+        cursor.execute("SELECT @p_or_logs_id AS or_logs_id")
+        result = cursor.fetchone()
+        or_logs_id = result['or_logs_id'] if result else None
+
         if not or_logs_id:
             raise Exception("Failed to get Ordered_Logs ID.")
 
-        cursor.callproc('log_order_items', (order_list_id, or_logs_id))
-        conn.commit()
-        return {'status': 'success'}
+        print("Logging order items with:")
+        print("Order List ID:", order_list_id)
+        print("Ordered Logs ID:", or_logs_id)
+
+        try:
+            # Continue with logging order items
+            cursor.callproc('log_order_items', (order_list_id, or_logs_id))
+            conn.commit()
+            return {'status': 'success'}
+        except Exception as e:
+            print("Error in logging order items:", str(e))
+        raise
 
     except Exception as e:
         conn.rollback()
