@@ -16,7 +16,8 @@ def payment_module(order_id):
             cash_given = request.form.get('cashGiven', type=float)
             discount_percent = request.form.get('discountPercent', type=float) or 0.0
             discount_percent = Decimal(discount_percent)
-            
+            discount_id = request.form.get("discountID")
+
             cursor.execute("SELECT Quantity, Price_Per_Item FROM processing_order_items WHERE order_ID = %s", (order_id,))
             items = cursor.fetchall()
             if not items:
@@ -25,7 +26,22 @@ def payment_module(order_id):
                 return jsonify(status='error', message='No order items found'), 400
 
             total_price = sum(Decimal(item['Price_Per_Item']) * item['Quantity'] for item in items)
-            discounted_total = total_price * (Decimal('1') - discount_percent / Decimal('100'))
+            
+            if discount_id is None:
+                discount_id = None
+            elif discount_id == 0:
+                discount_id = None
+            elif discount_id == '0':
+                discount_id = None
+            else:
+                discount_id = discount_id
+
+            print(discount_id)
+
+            if discount_id is not None:
+                discounted_total = total_price - (total_price * discount_percent)
+            else:
+                discounted_total = total_price
 
             if payment_method == "gcash":
                 return jsonify(status='error', message='GCash payment not implemented yet'), 400
@@ -41,21 +57,25 @@ def payment_module(order_id):
                 cursor.close()
                 conn.close()
                 return jsonify(status='error', message='Missing transaction ID'), 400
-            transaction_id = transaction_row['transaction_id']
+            else:
+                transaction_id = transaction_row['transaction_id']
 
             try:
-                log_result = log_order_transaction(order_id, discount_percent, payment_method, transaction_id)
-                if log_result['status'] != 'success':
+                log_result = log_order_transaction(order_id, discount_id, payment_method, transaction_id)
+                print(log_result)
+                if log_result['status'] == 'success':
+                    cursor.execute("UPDATE processing_orders SET order_status = 'preparing' WHERE order_ID = %s", (order_id,))
+                    conn.commit()
+                    return jsonify(status='success')
+                else:
                     print(f"Warning: log_order_transaction returned error: {log_result.get('message')}")
+                    return jsonify(f"Warning: log_order_transaction returned error: {log_result.get('message')}")
+                    
+
             except Exception as e:
                 print(f"Warning: log_order_transaction raised exception: {e}")
+                return jsonify(f"Warning: log_order_transaction raised exception: {e}")
 
-            cursor.execute("UPDATE processing_orders SET order_status = 'preparing' WHERE order_ID = %s", (order_id,))
-            conn.commit()
-
-            cursor.close()
-            conn.close()
-            return jsonify(status='success', transaction_id=transaction_id)
 
         except Exception as e:
             cursor.close()
@@ -64,7 +84,7 @@ def payment_module(order_id):
 
 
     # GET method part stays unchanged
-    cursor.execute("SELECT * FROM processing_orders WHERE order_ID = %s AND order_status = 'Pending'", (order_id,))
+    cursor.execute("SELECT * FROM processing_orders WHERE order_ID = %s AND order_status = 'pending'", (order_id,))
     order = cursor.fetchone()
 
     if not order:
@@ -78,14 +98,25 @@ def payment_module(order_id):
         if customer_id is not None:
             cursor.execute("SELECT * FROM customer_accounts WHERE customer_id = %s", (customer_id,))
             customer = cursor.fetchone()
-            order['customer_name'] = customer['customer_name']
-            order['customer_location'] = customer['customer_location']
+            order['customer_name'] = " ".join(filter(None, [
+                customer['Fname'],
+                customer['Mname'],
+                customer['Lname']
+            ]))
             order['customer_contact'] = customer['contact_number']
 
+            cursor.execute("SELECT * FROM customer_locations WHERE customer_id = %s", (customer_id,))
+            location_recieve = cursor.fetchone()
+            if location_recieve:
+                order['customer_location'] = location_recieve['location']
+            else:
+                order['customer_location'] = "No saved address"
         else:
-            cursor.close()
-            conn.close()
-            return "No customer found for order.", 400
+            order['customer_name'] = 'Walk-In Guest'
+            order['customer_contact'] = ''
+            order['customer_location'] = ''
+
+            
 
     cursor.execute("SELECT * FROM processing_order_items WHERE order_ID = %s", (order_id,))
     raw_items = cursor.fetchall()
@@ -147,60 +178,65 @@ def log_order_transaction(order_id, discount_id, payment_method, transaction_id)
     cursor = conn.cursor(dictionary=True)
 
     try:
-        # Get order details and order_list_id
         cursor.execute("SELECT * FROM processing_orders WHERE order_ID = %s", (order_id,))
         order = cursor.fetchone()
         if not order:
             raise Exception("Order not found.")
-        
+
         order_type = order.get('order_type')
         customer_id = order.get('customer_id')
         order_list_id = order.get('order_list_id')
         cashier_id = session.get('user_id')
 
-        # Convert discount ID from form (if needed)
-        discount_id = request.form.get('discountID')
-        try:
-            discount_id = int(discount_id)
-            if discount_id == 0:
-                discount_id = None
-        except (ValueError, TypeError):
-            discount_id = None
-
-        # Get total price
         cursor.execute("SELECT Quantity, Price_Per_Item FROM processing_order_items WHERE order_ID = %s", (order_id,))
         items = cursor.fetchall()
         total_price = sum(Decimal(item['Price_Per_Item']) * item['Quantity'] for item in items)
 
-        # Discount
-        if discount_id:
-            cursor.execute("SELECT Discount_Percent FROM Discount_Table WHERE Discount_ID = %s", (discount_id,))
-            percent_row = cursor.fetchone()
-            if percent_row:
-                discount_percent = Decimal(percent_row['Discount_Percent'])
+        # Handle discount ID properly
+        print('discount ID: ', discount_id)
+        
+        
+        if discount_id is not None and discount_id != 0:
+            cursor.execute("SELECT Discount_Percent FROM discount_table WHERE Discount_ID = %s", (discount_id,))
+            discount_row = cursor.fetchone()
+
+            if discount_row and 'Discount_Percent' in discount_row:
+                discount_percent = Decimal(discount_row['Discount_Percent'])
+                print('discount Percent: ', discount_percent)
             else:
-                raise Exception("Invalid discount ID.")
+                raise Exception("Discount not found in discount_table.")
         else:
-            discount_percent = Decimal('1.00')
+            discount_id = None  # Ensure it's NULL in the DB
+            discount_percent = Decimal('0.0')
+            print('discount Percent: ', discount_percent)
 
         discount_price = (total_price * discount_percent).quantize(Decimal('0.01'), rounding=ROUND_UP)
-
         discounted_total = (total_price - discount_price).quantize(Decimal('0.01'), rounding=ROUND_UP)
+
         payment_method_clean = payment_method.replace("-option", "")
 
         if order_type == 'delivery':
             status = "unpaid"
-        elif order_type == 'dine-in' or order_type == 'take-out':
+        elif order_type in ['dine-in', 'take-out']:
             status = "paid"
         else:
-            return ("Error recieving order type")
+            raise Exception("Unknown order type")
 
-        # --- FIXED OUT PARAM HANDLING ---
-        # 1. Set initial value for the OUT variable
+        print('id:', order_id)
+        print('transaction id:', transaction_id)
+        print('cashier id:', cashier_id)
+        print('total price:', total_price)
+        print('discount id:', discount_id)
+        print('discount percent:', discount_percent)
+        print('discounted total:', discounted_total)
+        print('payment method:', payment_method_clean)
+        print('order type:', order_type)
+        print('customer id:', customer_id)
+        print('status:', status)
+
         cursor.execute("SET @p_or_logs_id = 0")
 
-        # Call the procedure with the OUT variable name
-        cursor.execute("CALL loging_walk_in_order(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s,  %s, @p_or_logs_id)", (
+        cursor.execute("CALL loging_walk_in_order(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, @p_or_logs_id)", (
             order_id,
             transaction_id,
             cashier_id,
@@ -209,11 +245,10 @@ def log_order_transaction(order_id, discount_id, payment_method, transaction_id)
             discounted_total,
             payment_method_clean,
             order_type,
-            customer_id,        
+            customer_id,
             status,
         ))
 
-        # Now fetch the OUT value
         cursor.execute("SELECT @p_or_logs_id AS or_logs_id")
         result = cursor.fetchone()
         or_logs_id = result['or_logs_id'] if result else None
@@ -226,13 +261,12 @@ def log_order_transaction(order_id, discount_id, payment_method, transaction_id)
         print("Ordered Logs ID:", or_logs_id)
 
         try:
-            # Continue with logging order items
             cursor.callproc('log_order_items', (order_list_id, or_logs_id))
             conn.commit()
             return {'status': 'success'}
         except Exception as e:
             print("Error in logging order items:", str(e))
-        raise
+            raise
 
     except Exception as e:
         conn.rollback()
@@ -241,3 +275,4 @@ def log_order_transaction(order_id, discount_id, payment_method, transaction_id)
     finally:
         cursor.close()
         conn.close()
+

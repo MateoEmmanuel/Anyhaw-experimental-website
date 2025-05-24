@@ -101,15 +101,18 @@
                                 {% for d in discounts %}
                                     <button type="button"
                                             class="discount-btn"
-                                            data-id="{{ d.Discount_ID }}"
-                                            data-percent="{{ d.Discount_Percent }}">
+                                            data-id="{{ d.Discount_ID | int }}"
+                                            data-percent="{{ '%.2f'|format(d.Discount_Percent) }}">
                                         {{ d.Discount_Name }}
                                     </button>
                                 {% endfor %}
                                 <button type="button" class="discount-btn" data-id="0" data-percent="0">No Discount</button>
                             </div>
 
-                            
+                            <!-- Hidden inputs for form submission -->
+                            <input type="hidden" name="discountID" id="discountID" value="0">
+                            <input type="hidden" name="discountPercent" id="discountPercent" value="0">
+                            <input type="hidden" name="discountName" id="discountName" value="No Discount">
 
                             <!-- 👇 Discount display goes directly under discount buttons -->
                             <div id="selected-discount-display" style="display: none; margin: 8px;">
@@ -119,10 +122,7 @@
                                 <input type="text" id="discountedPrice" readonly value="0" placeholder="₱0.00" style="width: 80px;">
                             </div>
 
-                            <!-- Hidden inputs for form submission -->
-                            <input type="hidden" name="discountID" id="discountID" value="0">
-                            <input type="hidden" name="discountPercent" id="discountPercent" value="0">
-                            <input type="hidden" name="discountName" id="discountName" value="No Discount">
+
 
                             <label for="cashGiven">Customer Paid:</label>
                             <input type="number" id="cashGiven" name="cashGiven" placeholder="₱0.00" min="0" step="0.01">

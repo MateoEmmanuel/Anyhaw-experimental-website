@@ -259,7 +259,7 @@ document.getElementById("updateprofilepic_form").addEventListener("submit", func
     const formData = new FormData();
     formData.append("profilePic", file);
 
-    fetch("/update_profile_picture", {
+    fetch("/backend/cashier/update_profile_picture", {
         method: "POST",
         body: formData
     })

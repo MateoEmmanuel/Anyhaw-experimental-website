@@ -166,7 +166,7 @@ def update_profile_picture():
         conn = create_connection()
         cursor = conn.cursor()
 
-        cursor.callproc('UpdateProfilePicture', (user_id, image_blob))
+        cursor.callproc('UpdateProfilePicture_personel', (user_id, image_blob))
         conn.commit()
 
         return jsonify({'message': 'Profile picture updated successfully'}), 200

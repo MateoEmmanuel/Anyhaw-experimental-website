@@ -105,27 +105,50 @@ document.addEventListener("DOMContentLoaded", function () {
     
 });
 
+
 document.getElementById('paymentForm').addEventListener('submit', async function(e) {
     e.preventDefault();
 
     const form = e.target;
     const formData = new FormData(form);
+    const cashGiven = parseFloat(formData.get('cashGiven')) || 0;
 
-    try {
-        const response = await fetch(form.action, {
-            method: 'POST',
-            body: formData
-        });
+    if (cashGiven != null && cashGiven > 0) {
+        const submitButton = form.querySelector('button[type="submit"]');
 
-        const data = await response.json();
+        try {
+            const response = await fetch(form.action, {
+                method: 'POST',
+                body: formData
+            });
 
-        if (data.status === 'success') {
-            window.location.href = '/backend/cashier/order_queue_loader';
-        } else {
-            alert('Error: ' + (data.message || 'Unknown error'));
+            const contentType = response.headers.get("content-type");
+
+            // Make sure the backend returned JSON
+            if (contentType && contentType.indexOf("application/json") !== -1) {
+                const data = await response.json();
+
+                if (data.status === 'success') {
+                    window.location.href = '/backend/cashier/order_queue_loader';
+                } else {
+                    alert('❌ Error: ' + (data.message || 'Unknown error occurred.'));
+                }
+            } else {
+                alert('❌ Server did not return JSON. Check your backend.');
+            }
+
+        } catch (err) {
+            alert('⚠️ Payment failed: ' + err.message);
         }
-    } catch (err) {
-        alert('Error submitting payment: ' + err.message);
+    } else {
+        alert("⚠️❌ Error: Money entered - ₱ " + cashGiven + " - is not enough!");
     }
 });
+
+
+
+
+document.getElementById('Home_btn').addEventListener('click', function () {
+        window.location.href = '/backend/cashier/cashier_loader';
+    });
 

@@ -21,6 +21,7 @@ function hideAllUI() {
 }
 
 document.addEventListener('DOMContentLoaded', function () {
+    form.reset();
     const menuItems = document.querySelectorAll('.options-item');
 
     // Sidebar menu toggle
