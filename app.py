@@ -16,7 +16,6 @@ from backend.forgotpassword import forgot_password
 from backend.forgotpassword import send_email
 from backend.forgotpassword import verify_reset_code
 from backend.forgotpassword import reset_password
-from backend.guest_login import guest_login
 from backend.cashier.cashier_settings import cashier_settings_bp
 from backend.cashier.cashier_loader import cashier_bp
 from backend.logout import logout_bp
@@ -41,7 +40,6 @@ app.add_url_rule('/forgot-password', view_func=forgot_password, methods=["POST"]
 app.add_url_rule('/verify-recovery-code', view_func=verify_reset_code, methods=["POST"])
 app.add_url_rule('/reset-password', view_func=reset_password, methods=["POST"])
 app.add_url_rule('/send-email', view_func=send_email, methods=["POST"])
-app.add_url_rule('/guest-login', view_func=guest_login, methods=["POST"])
 app.register_blueprint(cashier_settings_bp, url_prefix="/backend/cashier", methods=["POST"])
 app.register_blueprint(logout_bp)
 app.register_blueprint(cashier_bp, url_prefix='/backend/cashier')

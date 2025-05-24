@@ -74,7 +74,6 @@ def payment_module(order_id):
     else:
         # get customer details
         customer_id = order.get('customer_id')
-        guest_id = order.get('guest_id')
 
         if customer_id is not None:
             cursor.execute("SELECT * FROM customer_accounts WHERE customer_id = %s", (customer_id,))
@@ -83,17 +82,10 @@ def payment_module(order_id):
             order['customer_location'] = customer['customer_location']
             order['customer_contact'] = customer['contact_number']
 
-        elif guest_id is not None:
-            order['customer_name'] = order['guest_name']
-            order['customer_location'] = order['guest_location']
-            cursor.execute("SELECT contact_number FROM guest_accounts WHERE guest_id = %s", (guest_id,))
-            result = cursor.fetchone()
-            order['customer_contact'] = result['contact_number'] if result else "Unknown"
-
         else:
             cursor.close()
             conn.close()
-            return "No customer or guest ID found for order.", 400
+            return "No customer found for order.", 400
 
     cursor.execute("SELECT * FROM processing_order_items WHERE order_ID = %s", (order_id,))
     raw_items = cursor.fetchall()
@@ -160,18 +152,10 @@ def log_order_transaction(order_id, discount_id, payment_method, transaction_id)
         order = cursor.fetchone()
         if not order:
             raise Exception("Order not found.")
-
+        
+        order_type = order.get('order_type')
         customer_id = order.get('customer_id')
-        guest_id = order.get('guest_id')
         order_list_id = order.get('order_list_id')
-
-        if customer_id:
-            customer_id_to_use = customer_id
-            account_type = 'customer'
-        else:
-            customer_id_to_use = None
-            account_type = 'guest'
-
         cashier_id = session.get('user_id')
 
         # Convert discount ID from form (if needed)
@@ -199,25 +183,34 @@ def log_order_transaction(order_id, discount_id, payment_method, transaction_id)
         else:
             discount_percent = Decimal('1.00')
 
-        discounted_total = (total_price * discount_percent).quantize(Decimal('0.01'), rounding=ROUND_UP)
+        discount_price = (total_price * discount_percent).quantize(Decimal('0.01'), rounding=ROUND_UP)
+
+        discounted_total = (total_price - discount_price).quantize(Decimal('0.01'), rounding=ROUND_UP)
         payment_method_clean = payment_method.replace("-option", "")
-        order_type = 'walk-in'
+
+        if order_type == 'delivery':
+            status = "unpaid"
+        elif order_type == 'dine-in' or order_type == 'take-out':
+            status = "paid"
+        else:
+            return ("Error recieving order type")
 
         # --- FIXED OUT PARAM HANDLING ---
         # 1. Set initial value for the OUT variable
         cursor.execute("SET @p_or_logs_id = 0")
 
         # Call the procedure with the OUT variable name
-        cursor.execute("CALL loging_walk_in_order(%s, %s, %s, %s, %s, %s, %s, %s, %s, @p_or_logs_id)", (
+        cursor.execute("CALL loging_walk_in_order(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s,  %s, @p_or_logs_id)", (
             order_id,
             transaction_id,
             cashier_id,
+            total_price,
             discount_id,
             discounted_total,
             payment_method_clean,
             order_type,
-            customer_id_to_use,
-            account_type,
+            customer_id,        
+            status,
         ))
 
         # Now fetch the OUT value

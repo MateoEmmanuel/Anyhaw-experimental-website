@@ -13,7 +13,8 @@ def print_receipt_by_order_id(or_logs_id):
 
     # Get order info
     cursor.execute("""
-        SELECT ol.Or_Logs_ID, ol.Transaction_ID, ca.customer_name, 
+        SELECT ol.Or_Logs_ID, ol.Transaction_ID, 
+                CONCAT(ca.Lname, ', ', ca.Fname, ' ', ca.Mname) AS Customer_Name, 
                ol.Date_Time, ol.Total_Price, ol.payment_method, 
                ol.gcash_ref, ol.order_type,
                ol.discount, ol.amount_paid, ol.change_amount

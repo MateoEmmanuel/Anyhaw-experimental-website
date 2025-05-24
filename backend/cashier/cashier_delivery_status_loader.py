@@ -13,7 +13,7 @@ def cashier_delivery_stats_loader():
         cursor.execute("""
             SELECT order_ID, transaction_id, table_number, order_status, order_type,
                 DATE_FORMAT(order_time, '%M %d %Y / %h:%i:%s %p') AS order_time,
-                customer_id, guest_id, guest_name, guest_location, delivery_payment_status
+                customer_id, delivery_payment_status
             FROM processing_orders 
             WHERE order_status NOT IN ('pending', 'prepared', 'served')
             AND (
@@ -77,10 +77,10 @@ def cashier_delivery_stats_loader():
         # Get customer names
         for order in orders_data:
             customer_id = order['customer_id']
-            guest_id = order['guest_id']
             if customer_id:
                 cursor.execute("""
-                    SELECT ca.Customer_Name, ca.contact_number, cl.location
+                    SELECT CONCAT(ca.Lname, ', ', ca.Fname, ' ', ca.Mname) AS Customer_Name, 
+                               ca.contact_number, cl.location
                     FROM customer_accounts ca
                     LEFT JOIN customer_locations cl ON ca.customer_id = cl.customer_id
                     WHERE ca.customer_id = %s
@@ -90,14 +90,10 @@ def cashier_delivery_stats_loader():
                 order['customer_contact'] = result['contact_number'] if result else "Unknown"
                 order['customer_location'] = result['location'] if result else "Unknown"
 
-            elif guest_id:
-                order['customer_name'] = order['guest_name']
-                order['customer_location'] = order['guest_location']
-                cursor.execute("SELECT contact_number FROM guest_accounts WHERE guest_id = %s", (guest_id,))
-                result = cursor.fetchone()
-                order['customer_contact'] = result['contact_number'] if result else "Unknown"
             else:
-                return jsonify(message = "No customer or guest ID found for order."), 400
+                order['customer_name'] = "Walk-In Guest"
+                order['customer_contact'] = " "
+                order['customer_location'] = " "
 
 
             orders.append({
