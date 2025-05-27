@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <script src="{{ url_for('static', filename='assets/js/cashier_served_scripts.js') }}" defer></script>
-    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='logoicon.ico') }}">
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='assets/images/navbar_logo.png') }}">
 </head>
 <body>
     <header>
@@ -27,7 +27,6 @@
                 <li class="options-item">
                     <a>Ordering and Processing</a>
                     <ul class="sub-options">
-                        <li><a href="#" id="manualordering_btn">Manual Ordering</a></li>
                         <li><a href="#" id="orderque_btn">Order Queue</a></li>
                         <li><a href="#" id="orderpreparationstatus_btn">Order Prep Status</a></li>
                         <li><a href="#" id="orderserved_btn">Served Order</a></li>
@@ -91,7 +90,7 @@
                         </div>
                     {% endfor %}
                 {% else %}
-                    <p class="noqueue" >No Served Order This Past 12 Hours.</p>
+                    <p class="noqueue" >No Served Order Today.</p>
                 {% endif %}
             </div>
         </div>

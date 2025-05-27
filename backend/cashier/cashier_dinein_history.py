@@ -1,33 +1,35 @@
 from flask import Blueprint, render_template, request, redirect, url_for,jsonify
 from backend.dbconnection import create_connection
 
-cashier_orderstatus_bp = Blueprint('cashier_orderstatus', __name__)
+cashier_dinein_history_bp = Blueprint('cashier_dinein_history', __name__)
 
-@cashier_orderstatus_bp.route('/order_status_loader')
-def order_queue_loader():
+@cashier_dinein_history_bp.route('/cashier_dinein_history_loader')
+def cashier_dinein_history_loader():
     conn = create_connection()
     cursor = conn.cursor(dictionary=True)
 
     try:
-        # Get only 'Pending' orders including order_type and order_time
+        # Get only 'served' orders from Ordered_Logs, including order_type and timestamp
         cursor.execute("""
-            SELECT order_ID, transaction_id, table_number, order_status, order_type,
-                DATE_FORMAT(order_time, '%M %d %Y / %h:%i:%s %p') AS order_time, customer_id, delivery_payment_status
-            FROM processing_orders 
-            WHERE order_status = 'preparing'
-            ORDER BY order_time DESC
+            SELECT Or_Logs_ID, Transaction_ID, customer_id, cashier_id, order_type,
+                DATE_FORMAT(Date_Time, '%M %d %Y / %h:%i:%s %p') AS order_time,
+                status
+            FROM Ordered_Logs
+            WHERE order_type = 'dine-in'
+            AND DATE(Date_Time) = CURDATE()
+            ORDER BY Date_Time DESC
         """)
         orders_data = cursor.fetchall()
 
         orders = []
         for order in orders_data:
-            order_id = order['order_ID']
+            order_id = order['Or_Logs_ID']
 
             # Get items in this order
             cursor.execute("""
-                SELECT item_id, Item_Type, Quantity, Prep_status 
-                FROM processing_order_items 
-                WHERE order_ID = %s
+                SELECT item_id, Item_Type, Quantity, Price_Per_Item, Total_Item_Price 
+                FROM Ordered_Items
+                WHERE Or_Logs_ID = %s
             """, (order_id,))
             raw_items = cursor.fetchall()
 
@@ -83,56 +85,27 @@ def order_queue_loader():
                 """, (customer_id,))
                 result = cursor.fetchone()
                 customer_name = result['Customer_Name'] if result else "Unknown"
-                customer_contact = result['contact_number'] if result else "Unknown"
-                customer_location = result['location'] if result else "Unknown"
 
             else:
                 customer_name = "Walk-In Guest"
-                customer_contact = " "
-                customer_location = " "
 
             orders.append({
-                'order_id': order['order_ID'],
-                'transaction_id': order['transaction_id'],
-                'table_number': order['table_number'],
-                'order_status': order['order_status'],
+                'order_id': order['Or_Logs_ID'],
+                'Transaction_ID': order['Transaction_ID'],
                 'order_type': order['order_type'],
                 'order_time': order['order_time'],
+                'status': order['status'],
                 'customer': customer_name,
-                'customer_name': customer_name,
-                'customer_contact': customer_contact,
-                'customer_location': customer_location,
                 'items': items
             })
 
 
-        return render_template('cashier_orderstatus.html', orders=orders)
+        return render_template('Cashier_dine-in_history.html', orders=orders)
 
     except Exception as e:
         print("Error loading order queue:", e)
-        return render_template('cashier_orderstatus.html', orders=[])
+        return render_template('Cashier_dine-in_history.html', orders=[])
 
     finally:
         cursor.close()
         conn.close()
-
-@cashier_orderstatus_bp.route('/order_status_update', methods=['POST'])
-def update_orderstatus_serve():
-    from flask import jsonify
-    data = request.get_json()
-    order_id = data.get('order_id')
-    new_status = data.get('new_status')
-
-    if not order_id or not new_status:
-        return jsonify(success=False, message="Missing order_id or new_status"), 400
-
-    try:
-        conn = create_connection()
-        cursor = conn.cursor()
-        cursor.execute("UPDATE processing_orders SET order_status = %s WHERE order_ID = %s", (new_status, order_id))
-        conn.commit()
-        cursor.close()
-        conn.close()
-        return jsonify(success=True)
-    except Exception as e:
-        return jsonify(success=False, message=str(e)), 500

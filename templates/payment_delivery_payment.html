@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <title>Any-Haw Litson Manok</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/payment_module_style.css') }}">
-    <script src="{{ url_for('static', filename='assets/js/payment_module_scripts.js') }}" defer></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/payment_delivery_payment_style.css') }}">
+    <script src="{{ url_for('static', filename='assets/js/payment_delivery_payment_scripts.js') }}" defer></script>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
@@ -81,7 +81,7 @@
                             <input type="text" id="baseAmount" value="₱{{ '%.2f' | format(total_price) }}" readonly class="form-control">
                             <input type="hidden" id="baseAmountunformatted" value="{{ '%.2f' | format(total_price) }}" readonly class="form-control">
                         </div>
-                        
+
                         <hr>
 
                         <div id="paymentOption" class="payment-method">
@@ -96,51 +96,13 @@
                         <hr>
 
                         <div id="cashInputSection" style="display: none;">
-                            <label for="discount">Discount:</label>
-                            <div id="discountButtons" style="margin: 8px;">
-                                {% for d in discounts %}
-                                    <button type="button"
-                                            class="discount-btn"
-                                            data-id="{{ d.Discount_ID | int }}"
-                                            data-percent="{{ '%.2f'|format(d.Discount_Percent) }}">
-                                        {{ d.Discount_Name }}
-                                    </button>
-                                {% endfor %}
-                                <button type="button" class="discount-btn" data-id="0" data-percent="0">No Discount</button>
-                            </div>
-
-                            <!-- Hidden inputs for form submission -->
-                            <input type="hidden" name="discountID" id="discountID" value="0">
-                            <input type="hidden" name="discountPercent" id="discountPercent" value="0">
-                            <input type="hidden" name="discountName" id="discountName" value="No Discount">
-
-                            <hr>
-
-                            <!-- 👇 Discount display goes directly under discount buttons -->
-                            <div id="selected-discount-display" style="display: none; margin: 8px;">
-                                <label for="discountDisplay">Selected Discount:</label>
-                                <input type="text" id="showdiscount" readonly style="width: 80px;">
-                                <label for="discountedtotal">Money Discounted:</label>
-                                <input type="text" id="discountedPrice" readonly placeholder="₱0.00" style="width: 80px;">
-                            </div>
-
-                            <hr>
-
-                        <label for="cashGiven">Customer Paid:</label>
+                            <label for="cashGiven">Customer Paid:</label>
                             <input type="number" id="cashGiven" name="cashGiven" placeholder="₱0.00" min="0" step="0.01">
                         </div>
 
                         <div id="qrContainer" style="display: none; text-align: center;">
                             <label>Scan to Pay:</label>
-                            <br>
-                            <img src="{{ url_for('static', filename='assets/images/Gcash_QR_CODE.png') }}" alt="GCash QR Code" style="width: 200px; height: 200px;">
-                        </div>
-
-                        <hr>
-
-                        <div id="changeSection" style="display: none;">
-                            <label for="change">Change:</label>
-                            <input type="text" id="change" name="change" placeholder="₱0.00" readonly>
+                            <input type="text" id="gcashref" name="gcashref" placeholder="Gcash Reference Number">
                         </div>
 
                         <hr>

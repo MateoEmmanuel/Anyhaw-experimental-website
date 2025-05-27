@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <script src="{{ url_for('static', filename='assets/js/cashier_delivery_status_scripts.js') }}" defer></script>
-    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='logoicon.ico') }}">
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='assets/images/navbar_logo.png') }}">
 </head>
 <body>
     <header>
@@ -27,7 +27,6 @@
                 <li class="options-item">
                     <a>Ordering and Processing</a>
                     <ul class="sub-options">
-                        <li><a href="#" id="manualordering_btn">Manual Ordering</a></li>
                         <li><a href="#" id="orderque_btn">Order Queue</a></li>
                         <li><a href="#" id="orderpreparationstatus_btn">Order Prep Status</a></li>
                         <li><a href="#" id="orderserved_btn">Served Order</a></li>
@@ -53,11 +52,9 @@
                             <p><strong>Customer Name:</strong> {{ order.customer }}</p>
                             <p><strong>Order Time:</strong> {{ order.order_time }}</p>
                             <p><strong>Transaction ID:</strong> {{ order.transaction_id }}</p>
-                            <p><strong>Order Type:</strong> Delivery</p>
+                            <p><strong>Order Type:</strong> {{order.order_type}}</p>
                             <p><strong>Delivery Address:</strong> {{ order.delivery_address }}</p>
-                            <p><strong>Payment Status</strong>{{order.delivery_payment_status}}</p>
-
-                            <p><strong>Status:</strong> {{ order.order_status }}</p>
+                            <p><strong>Payment Status</strong>{{order.status}}</p>
 
                             {% set ns = namespace(grand_total=0) %}
                             <table class="order-items-table">

@@ -26,7 +26,10 @@ from backend.cashier.reciepts.print_reciept import print_receipt_by_order_id
 from backend.cashier.order_status_loader import cashier_orderstatus_bp
 from backend.cashier.cashier_served_table_loader import cashier_served_order_bp
 from backend.cashier.cashier_delivery_status_loader import cashier_delivery_status_loader_bp
-
+from backend.cashier.cashier_dinein_history import cashier_dinein_history_bp
+from backend.cashier.cashier_takeout_history import cashier_takeout_history_bp
+from backend.cashier.cashier_delivery_history import cashier_delivery_history_bp
+from backend.cashier.payment_loader_delivery import cashier_payment_delivery_bp
 
 
 app = Flask(__name__)
@@ -49,6 +52,10 @@ app.register_blueprint(cashier_payment_bp, url_prefix='/backend/cashier')
 app.register_blueprint(cashier_orderstatus_bp, url_prefix='/backend/cashier')
 app.register_blueprint(cashier_served_order_bp, url_prefix='/backend/cashier')
 app.register_blueprint(cashier_delivery_status_loader_bp, url_prefix="/backend/cashier")
+app.register_blueprint(cashier_dinein_history_bp, url_prefix="/backend/cashier")
+app.register_blueprint(cashier_takeout_history_bp, url_prefix="/backend/cashier")
+app.register_blueprint(cashier_delivery_history_bp, url_prefix="/backend/cashier")
+app.register_blueprint(cashier_payment_delivery_bp, url_prefix="/backend/cashier")
 
 @app.route("/")
 def Index_home():

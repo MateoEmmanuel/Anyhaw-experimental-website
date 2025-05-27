@@ -86,7 +86,21 @@ document.getElementById('deliverystatus_btn').addEventListener('click', function
     window.location.href = '/backend/cashier/cashier_delivery_stats_loader';
 });
 
+
+document.getElementById('dineinhistory_btn').addEventListener('click', function () {
+    window.location.href = '/backend/cashier/order_status_loader';
+});
+document.getElementById('orderque_btn').addEventListener('click', function () {
+    window.location.href = '/backend/cashier/order_queue_loader';
+});
+document.getElementById('orderserved_btn').addEventListener('click', function () {
+    window.location.href = '/backend/cashier/served_order_loader';
+});
+
+document.getElementById('deliverystatus_btn').addEventListener('click', function () {
+    window.location.href = '/backend/cashier/cashier_delivery_stats_loader';
+});
+
 document.getElementById('dineinhistory_btn').addEventListener('click', function () {
     window.location.href = '/backend/cashier/cashier_dinein_history_loader';
 });
-

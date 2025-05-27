@@ -73,23 +73,6 @@ document.addEventListener("DOMContentLoaded", function () {
         window.location.href = '/backend/cashier/cashier_loader';
     });
 
-    document.getElementById('aboutUsLink_cashier').addEventListener('click', function () {
-        console.log('About-Us button clicked');
-        const aboutUsFilePath = "/static/assets/aboutus.txt";
-        fetch(aboutUsFilePath)
-            .then(response => {
-                if (!response.ok) throw new Error('File not found');
-                return response.text();
-            })
-            .then(data => {
-                document.getElementById('aboutUsContent').innerHTML = data;
-                document.getElementById('aboutUsUI_cashier').style.display = 'block';
-            })
-            .catch(error => {
-                console.error('Error loading About Us content:', error);
-            });
-    });
-
     // ✅ Modal event handlers
     const serveYesBtn = document.getElementById("serveYesBtn");
     const serveNoBtn = document.getElementById("serveNoBtn");
@@ -153,3 +136,24 @@ document.getElementById('orderserved_btn').addEventListener('click', function ()
 document.getElementById('deliverystatus_btn').addEventListener('click', function () {
     window.location.href = '/backend/cashier/cashier_delivery_stats_loader';
 });
+
+document.getElementById('dineinhistory_btn').addEventListener('click', function () {
+    window.location.href = '/backend/cashier/cashier_dinein_history_loader';
+});
+
+    document.getElementById('aboutUsLink_cashier').addEventListener('click', function () {
+        console.log('About-Us button clicked');
+        const aboutUsFilePath = "/static/assets/aboutus.txt";
+        fetch(aboutUsFilePath)
+            .then(response => {
+                if (!response.ok) throw new Error('File not found');
+                return response.text();
+            })
+            .then(data => {
+                document.getElementById('aboutUsContent').innerHTML = data;
+                document.getElementById('aboutUsUI_cashier').style.display = 'block';
+            })
+            .catch(error => {
+                console.error('Error loading About Us content:', error);
+            });
+    });

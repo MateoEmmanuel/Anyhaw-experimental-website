@@ -72,7 +72,14 @@ def order_queue_loader():
             if customer_id:
                 cursor.execute("""
                     SELECT CONCAT(ca.Lname, ', ', ca.Fname, ' ', ca.Mname) AS Customer_Name, 
-                               ca.contact_number, cl.location
+                               ca.contact_number,
+                                        CONCAT(
+                                            cl.Street_Address, ', ',
+                                            cl.Barangay_Subdivision, ', ',
+                                            cl.City_Municipality, ', ',
+                                            cl.Province_Region, ' (Landmark: ',
+                                            cl.landmark, ')'
+                                        ) AS location
                     FROM customer_accounts ca
                     LEFT JOIN customer_locations cl ON ca.customer_id = cl.customer_id
                     WHERE ca.customer_id = %s

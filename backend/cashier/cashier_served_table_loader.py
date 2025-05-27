@@ -9,12 +9,13 @@ def served_order_loader():
     cursor = conn.cursor(dictionary=True)
 
     try:
-        # Get only 'Pending' orders including order_type and order_time
+        # Get only 'serve' orders including order_type and order_time
         cursor.execute("""
-            SELECT order_ID, transaction_id, table_number, order_status, order_type, order_time,customer
+            SELECT order_ID, transaction_id, table_number, order_status, order_type, order_time, customer
             FROM processing_orders 
             WHERE order_status = 'served'
             AND order_type IN ('dine-in', 'take-out')
+            AND DATE(order_time) = CURDATE()
             ORDER BY order_time DESC;
         """)
         orders_data = cursor.fetchall()

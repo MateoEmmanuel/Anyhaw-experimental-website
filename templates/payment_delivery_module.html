@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Any-Haw Litson Manok - Delivery Payment</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/payment_delivery_module_style.css') }}">
+    <script src="{{ url_for('static', filename='assets/js/payment_delivery_module_scripts.js') }}" defer></script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='assets/images/navbar_logo.png') }}">
+</head>
+<body>
+    <header>
+        <div class="logo-title">
+            <a href="/backend/cashier/cashier_loader">
+                <img src="{{ url_for('static', filename='assets/images/navbar_logo.png') }}" alt="Any-Haw Logo">
+            </a>
+        </div>
+        <nav>
+            <a href="#" id="homeBtn">HOME</a>
+            <a href="#" id="returnToOrderQueueBtn">RETURN</a>
+            <a href="#" id="aboutUsLink_cashier">ABOUT US</a>
+        </nav>
+    </header>
+
+    <section class="main-section">
+        <div class="main-content">
+            <div class="main-content-inner">
+
+                <!-- Order Details Section -->
+                <div class="order-details-section">
+                    <h2>Order Details</h2>
+                    <div id="orderList">
+                        <div class="order-card">
+                            <p><strong>Customer Name:</strong> {{ order.customer_name }}</p>
+                            <input type="hidden" id="orderId" value="{{ order.customer_id }}">
+                            <p><strong>Order Time:</strong> {{ order.order_time }}</p>
+                            <p><strong>Transaction ID:</strong> {{ order.transaction_id }}</p>
+                            <p><strong>Order Type:</strong> Delivery</p>
+                            <p><strong>Delivery Address:</strong> {{ order.customer_location }}</p>
+                            <p><strong>Status:</strong> {{ order.order_status }}</p>
+                            <ul>
+                                {% for item in items %}
+                                <li>
+                                    {{ item.Item_Name }} - Qty: {{ item.Quantity }} @ ₱{{ '%.2f' | format(item.Price_Per_Item) }} = ₱{{ '%.2f' | format(item.Quantity * item.Price_Per_Item) }}
+                                </li>
+                                {% endfor %}
+                            </ul>
+                            <p><strong>Total Order Amount:</strong> ₱{{ '%.2f' | format(total_price) }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Payment Module for Delivery -->
+                <div class="payment-module">
+                    <h2>Delivery Payment</h2>
+                    
+                    <hr>
+
+                    <form id="paymentForm">
+                        <input type="hidden" id="orderId" value="{{ order.order_ID }}">
+                        <input type="hidden" id="orderType" value="delivery">
+                        <input type="hidden" id="transaction_id" value="{{ order.transaction_id }}">
+
+                        <div class="amount-due-summary">
+                            <div class="form-row">
+                                <label for="baseAmount">Total Order Amount:</label>
+                                <input type="text" id="baseAmount" value="₱{{ '%.2f' | format(total_price) }}" readonly class="form-control">
+                            </div>
+
+                            <hr>
+
+                            <div class="form-row">
+                                <label for="deliverydistance">Delivery distance:</label>
+                                <input type="text" id="delivery_distance" value="{{ '%.2f' | format(order.delivery_distance) }} {{ 'meter' if order.delivery_distance == 1 else 'meters' }}" readonly class="form-control">
+                            </div>
+                            
+                            <div class="form-row">
+                                <label for="deliveryfeepermeter">Delivery fee per meter:</label>
+                                <input type="text" id="deliveryTime" value="₱{{ price_per_meter }} per meter" readonly class="form-control">
+                            </div>
+                            
+                            <div class="form-row">
+                                <label for="deliveryFee">Delivery Fee:</label>
+                                <input type="text" id="deliveryFee" value="₱{{ '%.2f' | format(order.delivery_fee) }}" readonly class="form-control">
+                            </div>
+
+                            <hr>
+
+                            <div class="form-row">
+                                <label for="totalAmount">Total Amount to Pay:</label>
+                                <input type="text" id="totalAmount" value="₱{{ '%.2f' | format(total_price + order.delivery_fee) }}" readonly class="form-control">
+                            </div>
+
+                            <hr>
+
+                        </div>
+
+
+                        <button type="submit" id="proceedToPrintBtn">Prepare the Order</button>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+        <!-- about us testing phase -->
+    <div id="aboutUsUI_cashier" class="floating-ui aboutus-ui" style="display: none;">
+        <div class="floating-aboutus-inner">
+            <div id="aboutUsContent" class="aboutus-content">
+                <p>We are Any-Haw, serving the best Litson Manok in town since 2020!</p>
+            </div>
+            <button class="white-close-btn" id="closeAboutUsBtn">X</button>
+        </div>
+    </div>
+
+    <!-- Print confirmation modal -->
+    <div id="printConfirmModal" class="confirmmodal">
+        <p>Do you want to print the receipt?</p>
+        <button id="modalYesBtn">Yes</button>
+        <button id="modalNoBtn">No</button>
+        <button id="modalCancelBtn">Cancel</button>
+    </div>
+
+    <div id="modalOverlay" class="modaloverlay"></div>
+
+</body>
+</html>

@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <title>Any-Haw Litson Manok</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/cashier_orderque_style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/cashier_take-out_history_style.css') }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-    <script src="{{ url_for('static', filename='assets/js/cashier_orderque_scripts.js') }}" defer></script>
+    <script src="{{ url_for('static', filename='assets/js/cashier_take-out_history_scripts.js') }}" defer></script>
     <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='assets/images/navbar_logo.png') }}">
 </head>
 <body>
@@ -51,17 +51,9 @@
                         <div class="order-card">
                             <p><strong>Customer Name:</strong> {{ order.customer }}</p>
                             <p><strong>Order Time:</strong> {{ order.order_time }}</p>
-                            <p><strong>Transaction ID:</strong> {{ order.transaction_id }}</p>
-
-                            {% if order.order_type == 'delivery'%}
-                                <p><strong>Order Type:</strong> Delivery</p>
-                            {% elif order.order_type == 'take-out' %}
-                                <p><strong>Order Type:</strong> Take-Out</p>
-                            {% elif order.order_type == 'dine-in' %}
-                                <p><strong>Order Type:</strong> Dine-In</p>
-                            {% endif %}
+                            <p><strong>Transaction ID:</strong> {{ order.Transaction_ID }}</p>
+                            <p><strong>Order Type:</strong> {{order.order_type}}</p>
                             
-                            <p><strong>Status:</strong> {{ order.order_status }}</p>
 
                             {% set ns = namespace(grand_total=0) %}
                             <table class="order-items-table">
@@ -69,39 +61,22 @@
                                     <tr>
                                         <th>Item Name</th>
                                         <th>Quantity</th>
-                                        <th>Price per Item</th>
-                                        <th>Total Price</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {% for item in order['items'] %}
-                                    {% set item_total = item.Quantity|float * item.Price_Per_Item|float %}
-                                    {% set ns.grand_total = ns.grand_total + item_total %}
                                     <tr>
                                         <td>{{ item.Item_Name }}</td>
                                         <td>{{ item.Quantity }}</td>
-                                        <td>₱{{ "%.2f"|format(item.Price_Per_Item|float) }}</td>
-                                        <td>₱{{ "%.2f"|format(item_total) }}</td>
                                     </tr>
                                     {% endfor %}
-                                    <tr>
-                                        <td colspan="3" style="text-align: right;"><strong>Total Amount:</strong></td>
-                                        <td><strong>₱{{ "%.2f"|format(ns.grand_total) }}</strong></td>
-                                    </tr>
                                 </tbody>
                             </table>
-
-                            <div class="order-card">
-                                <input type="hidden" class="order-id" value="{{ order.order_id }}">
-                                <input type="hidden" class="order-type" value="{{ order.order_type }}">
-                                <button class="proceedtopayment-btn" onclick="proceedToPayment(this)">Proceed to Payment</button>
-                            </div>
-
                             <hr>
                         </div>
                     {% endfor %}
                 {% else %}
-                    <p class="noqueue" >No More Orders In Queue.</p>
+                    <p class="noqueue" >No Dine-In Order happened today.</p>
                 {% endif %}
             </div>
         </div>

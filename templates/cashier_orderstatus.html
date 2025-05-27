@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <script src="{{ url_for('static', filename='assets/js/cashier_orderstatus_script.js') }}" defer></script>
-    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='logoicon.ico') }}">
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='assets/images/navbar_logo.png') }}">
 </head>
 <body>
     <header>
@@ -27,7 +27,6 @@
                 <li class="options-item">
                     <a>Ordering and Processing</a>
                     <ul class="sub-options">
-                        <li><a href="#" id="manualordering_btn">Manual Ordering</a></li>
                         <li><a href="#" id="orderque_btn">Order Queue</a></li>
                         <li><a href="#" id="orderpreparationstatus_btn">Order Prep Status</a></li>
                         <li><a href="#" id="orderserved_btn">Served Order</a></li>
@@ -91,7 +90,17 @@
                             </table>
                             <div class="order-card">
                                 <input type="hidden" class="orderId" value="{{ order.order_id }}">
-                                <button class="servefood-btn" onclick="servethefood(this)">{{'Ready For Delivery' if order.order_type == 'delivery' else 'Serve Food'}}</button>
+                                {% set all_ready = order['items'] | selectattr('Prep_status', 'ne', 'to serve') | list | length == 0 %}
+
+                                <button 
+                                    class="servefood-btn"
+                                    onclick="servethefood(this)"
+                                    {% if not all_ready %}disabled style="opacity: 0.5; cursor: not-allowed;"{% endif %}>
+                                    {{ 'Ready For Delivery' if order.order_type == 'delivery' else 'Serve Food' }}
+                                </button>
+
+
+
                             </div>
                             <hr>
                         </div>

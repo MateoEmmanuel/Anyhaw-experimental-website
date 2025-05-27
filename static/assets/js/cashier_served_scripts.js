@@ -85,3 +85,7 @@ document.getElementById('orderserved_btn').addEventListener('click', function ()
 document.getElementById('deliverystatus_btn').addEventListener('click', function () {
     window.location.href = '/backend/cashier/cashier_delivery_stats_loader';
 });
+
+document.getElementById('dineinhistory_btn').addEventListener('click', function () {
+    window.location.href = '/backend/cashier/cashier_dinein_history_loader';
+});

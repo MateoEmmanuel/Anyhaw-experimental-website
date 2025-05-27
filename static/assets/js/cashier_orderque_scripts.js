@@ -21,8 +21,11 @@ function hideAllUI() {
 }
 
 document.addEventListener('DOMContentLoaded', function () {
-    form.reset();
     const menuItems = document.querySelectorAll('.options-item');
+    const testingBtn = document.getElementById('testing_btn');
+    const testingUI = document.getElementById('testingUI_interface');
+
+    const closeBtn = document.getElementById('closeAboutUsBtn');
 
     // Sidebar menu toggle
     menuItems.forEach(item => {
@@ -36,13 +39,20 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
+    // Optional: hide floating UI on ESC key press
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            testingUI.style.display = 'none';
+        }
+    });
+
     document.getElementById('Home_btn').addEventListener('click', function () {
         window.location.href = '/backend/cashier/cashier_loader';
     });
 });
 
 document.getElementById('aboutUsLink_cashier').addEventListener('click', function () {
-    console.log('About-Us button clicked');
+    console.log('Testing button clicked');
         const aboutUsFilePath = "/static/assets/aboutus.txt";
         fetch(aboutUsFilePath)
                 .then(response => {
@@ -60,6 +70,25 @@ document.getElementById('aboutUsLink_cashier').addEventListener('click', functio
 
 document.getElementById('closeAboutUsBtn').onclick = hideAllUI;
 
+document.getElementById('orderque_btn').addEventListener('click', function () {
+    window.location.href = '/backend/cashier/order_queue_loader';
+});
+
+document.getElementById('orderpreparationstatus_btn').addEventListener('click', function () {
+    window.location.href = '/backend/cashier/order_status_loader';
+});
+
+document.getElementById('orderserved_btn').addEventListener('click', function () {
+    window.location.href = '/backend/cashier/served_order_loader';
+});
+
+document.getElementById('deliverystatus_btn').addEventListener('click', function () {
+    window.location.href = '/backend/cashier/cashier_delivery_stats_loader';
+});
+
+
+document.getElementById('closeAboutUsBtn').onclick = hideAllUI;
+
 function proceedToPayment(button) {
     // Get the parent order card div
     const orderCard = button.closest('.order-card');
@@ -70,7 +99,13 @@ function proceedToPayment(button) {
     console.log("Proceeding with order ID:", orderId);
 
     // Example: redirect to payment page for that order
-    window.location.href = `/backend/cashier/payment_module/${orderId}`;
+    const ordertype = orderCard.querySelector('.order-type').value;
+    if (ordertype === 'delivery') {
+        window.location.href = `/backend/cashier/payment_delivery_module/${orderId}`;
+    } else{ 
+        window.location.href = `/backend/cashier/payment_module/${orderId}`;
+    }
+    
 }
 
 document.getElementById('orderpreparationstatus_btn').addEventListener('click', function () {
@@ -85,4 +120,8 @@ document.getElementById('orderserved_btn').addEventListener('click', function ()
 
 document.getElementById('deliverystatus_btn').addEventListener('click', function () {
     window.location.href = '/backend/cashier/cashier_delivery_stats_loader';
+});
+
+document.getElementById('dineinhistory_btn').addEventListener('click', function () {
+    window.location.href = '/backend/cashier/cashier_dinein_history_loader';
 });
