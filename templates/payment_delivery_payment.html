@@ -75,17 +75,16 @@
                     <form id="paymentForm">
                         <input type="hidden" id="orderId" value="{{ order.order_ID }}">
                         <input type="hidden" id="orderType" value="{{ order.order_type }}">
+                        <input type="hidden" id="transactionID" name="transactionID" value="{{ order.transaction_id }}">
 
                         <div class="amount-due-summary">
                             <label for="baseAmount">Total Order Cost:</label>
                             <input type="text" id="baseAmount" value="₱{{ '%.2f' | format(total_price) }}" readonly class="form-control">
-                            <input type="hidden" id="baseAmountunformatted" value="{{ '%.2f' | format(total_price) }}" readonly class="form-control">
+                            <input type="hidden" id="totalbaseAmount" value="{{ '%.2f' | format(total_price) }}" readonly class="form-control">
                             <br>
-                            <label for="deliveryfee">Delivery Fee:</label>
-                            <input type="text" id="baseAmount" value="₱{{ '%.2f' | format(delivery_fee) }}" readonly class="form-control">
+                            <label for="deliveryFee">Delivery Fee:</label>
+                            <input type="text" id="deliveryFee" value="₱{{ '%.2f' | format(delivery_fee) }}" readonly class="form-control">
                             <br>
-                            <label for="deliveryfee">Total :</label>
-                            <input type="text" id="baseAmount" value="₱{{ '%.2f' | format(delivery_fee) }}" readonly class="form-control">
                         </div>
 
                         <hr>
@@ -109,7 +108,7 @@
 
                         <div id="changeSection">
                             <label for="change">Change:</label>
-                            <input type="text" id="change" name="change" placeholder="₱0.00" readonly>
+                            <input type="text" id="change" value="₱0.00" name="change" readonly>
                             <hr>
                         </div>
 

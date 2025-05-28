@@ -5,23 +5,21 @@ document.addEventListener("DOMContentLoaded", function () {
     const cashGivenInput = document.getElementById("cashGiven");
     const changeInput = document.getElementById("change");
     const baseAmountInput = document.getElementById("baseAmount");
-    const deliveryFeeInput = document.getElementById("deliveryfee");
+    const deliveryFeeInput = document.getElementById("deliveryFee");
+    
 
     function resetPaymentFields() {
         paymentMethodInput.value = "";
         cashGivenInput.value = "";
-        changeInput.value = "";
         cashGivenInput.placeholder = "₱0.00";
-        changeInput.placeholder = "₱0.00";
         cashGivenInput.readOnly = false;
     }
 
     function updateChangeDisplay() {
-        const base = parseFloat(baseAmountInput.value.replace('₱', '')) || 0;
-        const deliveryFeeprice = parseFloat(deliveryFee.value) || 0;
         const cash = parseFloat(cashGivenInput.value) || 0;
+        const totalToPayElement = document.getElementById('totalbaseAmount');
+        const totalToPay = parseFloat(totalToPayElement.value) || 0;
 
-        const totalToPay = base + deliveryFeeprice;
         const change = cash - totalToPay;
 
         if (changeInput) {
@@ -29,33 +27,33 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
+
     document.getElementById('cashOption').addEventListener('click', function () {
         resetPaymentFields();
         paymentMethodInput.value = 'cash';
         paymentselected.value = 'Cash';
 
         cashGivenInput.readOnly = false;
-        alert(paymentMethodInput.value)
+        
     });
 
     document.getElementById('gcashOption').addEventListener('click', function () {
         resetPaymentFields();
         paymentMethodInput.value = 'gcash';
         paymentselected.value = 'Gcash';
-        
-        const base = parseFloat(baseAmountInput.value.replace('₱', '')) || 0;
-        const deliveryFeeprice = parseFloat(deliveryFee.value) || 0;
-        const totalToPay = base + deliveryFeeprice;
+        const totalToPayElement = document.getElementById('totalbaseAmount');
+        const totalToPay = parseFloat(totalToPayElement.value) || 0;
 
+        // ✅ No need for `.value` here — totalToPay is already a number
         cashGivenInput.value = totalToPay.toFixed(2);
         cashGivenInput.readOnly = true;
 
-        changeInput.value = totalToPay.toFixed(2)-totalToPay.toFixed(2);
+        // ✅ For debugging, use .value or console.log instead of alerting an object
+        alert(`Payment Method: ${paymentMethodInput.value}, Total to Pay: ₱${totalToPay.toFixed(2)}`);
 
-        alert(paymentMethodInput, cashGivenInput.value, changeInput.value)
     });
 
-    cashGiven.addEventListener("input", updateChangeDisplay);
+    cashGivenInput.addEventListener("input", updateChangeDisplay);
 
     // Button navigations
     document.getElementById('homeBtn').addEventListener('click', () => {
@@ -77,17 +75,14 @@ document.getElementById('paymentForm').addEventListener('submit', async function
 
     const paymentMethod = formData.get('paymentMethod');
     const cashGiven = parseFloat(formData.get('cashGiven')) || 0;
-    const baseAmount = parseFloat(formData.get('baseAmountunformatted')) || 0;
-    const deliveryFee = parseFloat(formData.get('deliveryfee')) || 0;
-
-    const totalToPay = baseAmount + deliveryFee;
+    const totalToPay = parseFloat(formData.get('totalbaseAmount')) || 0;
 
     if (!paymentMethod) {
         alert("⚠️❌ Please select a payment method before proceeding.");
         return;
     }
 
-    if (paymentMethod === 'cash' && cashGiven < totalToPay) {
+    if (paymentMethod === 'cash' && cashGiven <= totalToPay) {
         alert("⚠️❌ Error: Money entered - ₱" + cashGiven.toFixed(2) +
             " - is not enough! Total to pay: ₱" + totalToPay.toFixed(2));
         return;
@@ -115,4 +110,8 @@ document.getElementById('paymentForm').addEventListener('submit', async function
     } catch (err) {
         alert('⚠️ Payment failed: ' + err.message);
     }
+});
+
+document.addEventListener('DOMContentLoaded', function () {
+
 });

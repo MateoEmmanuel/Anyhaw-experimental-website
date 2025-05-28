@@ -14,78 +14,29 @@ def delivery_payment_payment_module(order_id):
 
     if request.method == 'POST':
         try:
-            payment_method = request.form['paymentMethod']
-            cash_given = request.form.get('cashGiven', type=float)
-            discount_percent = request.form.get('discountPercent', type=float) or 0.0
-            discount_percent = Decimal(discount_percent)
-            discount_id = request.form.get("discountID")
-            amount_paid = request.form.get("cashGiven")
-            change_amount = request.form.get("change")
-
+            transaction_id = request.form.get("transactionID")
+            order_id = request.form.get("orderId")
+            
             # Get order info
-            cursor.execute("SELECT * FROM processing_orders WHERE order_ID = %s", (order_id,))
+            cursor.execute("SELECT * FROM ordered_logs WHERE Transaction_ID = %s", (transaction_id,))
             order = cursor.fetchone()
             if not order:
                 cursor.close()
                 conn.close()
+                print(f"[DEBUG] Received transaction ID: {transaction_id}")  # Debugging line
+
                 return jsonify(status='error', message='Order not found'), 404
 
-            order_type = order['order_type']
-            delivery_distance = order.get('delivery_distance') or 0.0
 
-            # Fetch order items
-            cursor.execute("SELECT Quantity, Price_Per_Item FROM processing_order_items WHERE order_ID = %s", (order_id,))
-            items = cursor.fetchall()
-            if not items:
-                cursor.close()
-                conn.close()
-                return jsonify(status='error', message='No order items found'), 400
-
-            total_price = sum(Decimal(item['Price_Per_Item']) * item['Quantity'] for item in items)
-
-            if order_type == 'delivery':
-                # Delivery: no discount, delivery fee applied, payment status unpaid
-                discount_id = None
-                discount_percent = Decimal('0.0')
-                delivery_fee = PRICE_PER_METER * Decimal(delivery_distance)
-                total_price += delivery_fee
-                
-
-                # No cash validation for delivery (assumed unpaid or online)
-                discounted_total = total_price.quantize(Decimal('0.01'), rounding=ROUND_UP)
-
-            else:
-                # dine-in or take-out logic with discount and immediate payment
-                if discount_id in [None, 0, '0', '']:
-                    discount_id = None
-
-                if discount_id is not None:
-                    discounted_total = total_price - (total_price * discount_percent)
-                else:
-                    discounted_total = total_price
-
-                discounted_total = discounted_total.quantize(Decimal('0.01'), rounding=ROUND_UP)
-
-                if payment_method == 'cash-option' and (cash_given is None or Decimal(cash_given) < discounted_total):
-                    cursor.close()
-                    conn.close()
-                    return jsonify(status='error', message='Insufficient cash provided'), 400
-
-            deliveryfee = delivery_fee
-
-            # Get transaction id
-            transaction_id = order.get('transaction_id')
-            if not transaction_id:
-                cursor.close()
-                conn.close()
-                return jsonify(status='error', message='Missing transaction ID'), 400
+            ordered_logs_id = order["Or_Logs_ID"]
+            order_type = order["order_type"]
 
             if order_type == 'delivery':
                 # Update order_status and delivery_payment_status if delivery
-                cursor.execute("UPDATE processing_orders SET order_status = 'paid' WHERE order_ID = %s", (order_id,))
+                cursor.execute("UPDATE ordered_logs SET status = 'paid' WHERE Or_Logs_ID = %s", (ordered_logs_id,))
 
-                if order_type == 'delivery':
-                    cursor.execute("UPDATE processing_orders SET delivery_payment_status = 'yes' WHERE order_ID = %s", (order_id,))
+                if order_id is not None:
+                    cursor.execute("Delete processing_orders WHERE order_ID = %s", (order_id,))
 
                 conn.commit()
                 cursor.close()
@@ -103,20 +54,24 @@ def delivery_payment_payment_module(order_id):
             return jsonify(status='error', message=str(e)), 500
 
     # GET request: load order, items, discounts for payment form (same for all)
+
+    
     cursor.execute("SELECT * FROM processing_orders WHERE order_ID = %s AND order_status != 'pending'", (order_id,))
-    order = cursor.fetchone()
+    customeridgetter = cursor.fetchone()
 
     if not order:
         cursor.close()
         conn.close()
         return "Order not found or already processed", 404
 
-    customer_id = order.get('customer_id')
+    customer_id = customeridgetter.get('customer_id')
+
     if customer_id:
         cursor.execute("SELECT * FROM customer_accounts WHERE customer_id = %s", (customer_id,))
         customer = cursor.fetchone()
-        order['customer_name'] = " ".join(filter(None, [customer['Fname'], customer['Mname'], customer['Lname']]))
-        order['customer_contact'] = customer['contact_number']
+        if customer:
+            customer['customer_name'] = " ".join(filter(None, [customer['Fname'], customer['Mname'], customer['Lname']]))
+            customer['customer_contact'] = customeridgetter['contact_number']
 
         cursor.execute("SELECT * FROM customer_locations WHERE customer_id = %s", (customer_id,))
         location = cursor.fetchone()
@@ -125,9 +80,9 @@ def delivery_payment_payment_module(order_id):
             full_address = f"{location['Street_Address']}, {location['Barangay_Subdivision']}, " \
                         f"{location['City_Municipality']}, {location['Province_Region']} " \
                         f"(Landmark: {location['landmark']})"
-            order['customer_location'] = full_address
+            customer['customer_location'] = full_address
         else:
-            order['customer_location'] = "No saved address"
+            customer['customer_location'] = "No saved address"
 
     cursor.execute("SELECT * FROM processing_order_items WHERE order_ID = %s", (order_id,))
     raw_items = cursor.fetchall()
