@@ -17,10 +17,11 @@
             </a>
         </div>
         <nav>
-            <a href="#" id="Home_btn">HOME</a>  <!-- ✅ CORRECT -->
+            <a href="#" id="Home_btn">HOME</a>
             <a href="#" id="aboutUsLink_cashier">ABOUT US</a>
         </nav>
     </header>
+
     <section class="main-section">
         <aside class="sidebar">
             <ul class="options">
@@ -30,7 +31,8 @@
                         <li><a href="#" id="orderque_btn">Order Queue</a></li>
                         <li><a href="#" id="orderpreparationstatus_btn">Order Prep Status</a></li>
                         <li><a href="#" id="orderserved_btn">Served Order</a></li>
-                        <li><a href="#"id="deliverystatus_btn">Delivery Status</a></li>
+                        <li><a href="#" id="deliverystatus_btn">Delivery Status</a></li>
+                        <li><a href="#" id="deliverypayment_btn">Delivery Payment</a></li>
                     </ul>
                 </li>
                 <li class="options-item">
@@ -49,12 +51,13 @@
                 {% if orders %}
                     {% for order in orders %}
                         <div class="order-card">
-                            <p><strong>Customer Name:</strong> {{ order.customer }}</p>
+                            <p><strong>Customer Name:</strong> {{ order.customer_name }}</p>
                             <p><strong>Order Time:</strong> {{ order.order_time }}</p>
                             <p><strong>Transaction ID:</strong> {{ order.transaction_id }}</p>
-                            <p><strong>Order Type:</strong> {{order.order_type}}</p>
-                            <p><strong>Delivery Address:</strong> {{ order.delivery_address }}</p>
-                            <p><strong>Payment Status</strong>{{order.status}}</p>
+                            <input type="hidden" class="order-id" value="{{ order.order_id }}">
+                            <p><strong>Order Type:</strong> {{ order.order_type }}</p>
+                            <p><strong>Delivery Address:</strong> {{ order.customer_location }}</p>
+                            <p><strong>Payment Status:</strong> {{ order.delivery_payment_status }}</p>
 
                             {% set ns = namespace(grand_total=0) %}
                             <table class="order-items-table">
@@ -68,14 +71,14 @@
                                 </thead>
                                 <tbody>
                                     {% for item in order['items'] %}
-                                    {% set item_total = item.Quantity|float * item.Price_Per_Item|float %}
-                                    {% set ns.grand_total = ns.grand_total + item_total %}
-                                    <tr>
-                                        <td>{{ item.Item_Name }}</td>
-                                        <td>{{ item.Quantity }}</td>
-                                        <td>₱{{ "%.2f"|format(item.Price_Per_Item|float) }}</td>
-                                        <td>₱{{ "%.2f"|format(item_total) }}</td>
-                                    </tr>
+                                        {% set item_total = item.Quantity|float * item.Price_Per_Item|float %}
+                                        {% set ns.grand_total = ns.grand_total + item_total %}
+                                        <tr>
+                                            <td>{{ item.Item_Name }}</td>
+                                            <td>{{ item.Quantity }}</td>
+                                            <td>₱{{ "%.2f"|format(item.Price_Per_Item|float) }}</td>
+                                            <td>₱{{ "%.2f"|format(item_total) }}</td>
+                                        </tr>
                                     {% endfor %}
                                     <tr>
                                         <td colspan="3" style="text-align: right;"><strong>Total Amount:</strong></td>
@@ -83,17 +86,35 @@
                                     </tr>
                                 </tbody>
                             </table>
+
                             <hr>
+
+                            <div class="delivery-status-tracker">
+                                <p class="status-label">Status of the Delivery Order:</p>
+                                <div class="status-steps">
+                                    {% set statuses = ["preparing", "waiting for pickup", "on the way", "delivered"] %}
+                                    {% for status in statuses %}
+                                        <div class="status-step">
+                                            <div class="circle {{ 'active' if statuses.index(status) <= statuses.index(order.order_status) else '' }}"></div>
+                                            <p class="step-label">{{ status.title() }}</p>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+
+                                {% if order.order_status == 'delivered' %}
+                                    <button class="process-payment-btn" onclick="proceedToPayment(this)">Process Payment</button>
+                                {% endif %}
+                            </div>
                         </div>
                     {% endfor %}
                 {% else %}
-                    <p class="noqueue" >No Delivery Order happened today.</p>
+                    <p class="noqueue">No Delivery Order is happening or unpaid.</p>
                 {% endif %}
             </div>
         </div>
     </section>
 
-    <!-- about us testing phase -->
+    <!-- ABOUT US UI -->
     <div id="aboutUsUI_cashier" class="floating-ui aboutus-ui" style="display: none;">
         <div class="floating-aboutus-inner">
             <div id="aboutUsContent" class="aboutus-content">
@@ -102,6 +123,5 @@
             <button class="white-close-btn" id="closeAboutUsBtn">X</button>
         </div>
     </div>
-
 </body>
 </html>

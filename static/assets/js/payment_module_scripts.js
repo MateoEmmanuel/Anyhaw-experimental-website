@@ -105,46 +105,59 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 });
     // ✅ This is the working pattern
-    document.getElementById('paymentForm').addEventListener('submit', async function (e) {
-        e.preventDefault();
-        console.log("Payment form submitted");
+document.getElementById('paymentForm').addEventListener('submit', async function (e) {
+    e.preventDefault();
+    console.log("Payment form submitted");
 
-        const form = e.target;
-        const formData = new FormData(form);
+    const form = e.target;
+    const formData = new FormData(form);
 
-        const cashGiven = parseFloat(formData.get('cashGiven')) || 0;
-        const discountPercent = parseFloat(formData.get('discountPercent')) || 0;
-        const baseAmount = parseFloat(formData.get('baseAmountunformatted')) || 0;
+    const paymentMethod = formData.get('paymentMethod');
+    const cashGiven = parseFloat(formData.get('cashGiven')) || 0;
+    const discountPercent = parseFloat(formData.get('discountPercent')) || 0;
+    const baseAmount = parseFloat(formData.get('baseAmountunformatted')) || 0;
+    const deliveryFee = parseFloat(formData.get('deliveryfee')) || 0;
 
-        const discountAmount = baseAmount * discountPercent;
-        const totalToPay = baseAmount - discountAmount;
+    const discountAmount = baseAmount * discountPercent;
+    const totalToPay = baseAmount - discountAmount + deliveryFee;
 
+    // ❌ Reject if no payment method selected
+    if (!paymentMethod) {
+        alert("⚠️❌ Please select a payment method before proceeding.");
+        return;
+    }
+
+    // ✅ If payment is by cash, check if the cash given is enough
+    if (paymentMethod === 'cash') {
         if (cashGiven < totalToPay) {
             alert("⚠️❌ Error: Money entered - ₱" + cashGiven.toFixed(2) +
                 " - is not enough! Total to pay: ₱" + totalToPay.toFixed(2));
             return;
         }
+    }
 
-        try {
-            const response = await fetch(form.action, {
-                method: 'POST',
-                body: formData
-            });
+    // ✅ Proceed for valid gcash or sufficient cash
+    try {
+        const response = await fetch(form.action, {
+            method: 'POST',
+            body: formData
+        });
 
-            const contentType = response.headers.get("content-type");
+        const contentType = response.headers.get("content-type");
 
-            if (contentType && contentType.includes("application/json")) {
-                const data = await response.json();
-                if (data.status === 'success') {
-                    window.location.href = '/backend/cashier/order_queue_loader';
-                } else {
-                    alert('❌ Error: ' + (data.message || 'Unknown error occurred.'));
-                }
+        if (contentType && contentType.includes("application/json")) {
+            const data = await response.json();
+            if (data.status === 'success') {
+                window.location.href = '/backend/cashier/order_queue_loader';
             } else {
-                alert('❌ Server did not return JSON. Check your backend.');
+                alert('❌ Error: ' + (data.message || 'Unknown error occurred.'));
             }
-
-        } catch (err) {
-            alert('⚠️ Payment failed: ' + err.message);
+        } else {
+            alert('❌ Server did not return JSON. Check your backend.');
         }
-    });
+
+    } catch (err) {
+        alert('⚠️ Payment failed: ' + err.message);
+    }
+});
+

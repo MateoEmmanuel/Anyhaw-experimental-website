@@ -30,7 +30,7 @@ from backend.cashier.cashier_dinein_history import cashier_dinein_history_bp
 from backend.cashier.cashier_takeout_history import cashier_takeout_history_bp
 from backend.cashier.cashier_delivery_history import cashier_delivery_history_bp
 from backend.cashier.payment_loader_delivery import cashier_payment_delivery_bp
-
+from backend.cashier.payment_delivery_payment_loader import cashier_delivery_logging_bp
 
 app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY")
@@ -56,6 +56,7 @@ app.register_blueprint(cashier_dinein_history_bp, url_prefix="/backend/cashier")
 app.register_blueprint(cashier_takeout_history_bp, url_prefix="/backend/cashier")
 app.register_blueprint(cashier_delivery_history_bp, url_prefix="/backend/cashier")
 app.register_blueprint(cashier_payment_delivery_bp, url_prefix="/backend/cashier")
+app.register_blueprint(cashier_delivery_logging_bp, url_prefix="/backend/cashier")
 
 @app.route("/")
 def Index_home():
@@ -66,7 +67,7 @@ def Index_home():
         if role == "admin":
             return redirect(url_for("admin_ui")) # admin main UI lobby
         elif role == "customer": 
-            return redirect(url_for("customer_ui")) # custoemr main UI lobby
+            return redirect(url_for("customer_ui")) # customer main UI lobby
         elif role == "staff":
             return redirect(url_for("staff_ui")) # staff main UI lobby
         elif role == "Cashier":
@@ -82,11 +83,19 @@ def Index_home():
         # No user session — show the main landing page
         return render_template("index.html")  # This will render index.html from the templates folder
 
+@app.route("/admin_ui")
+def admin_ui():
+    # Check if user is authenticated and has admin role
+    if 'user_id' in session and 'role' in session and session['role'] == 'admin':
+        return render_template("admin_ui.html")
+    else:
+        # Redirect to login if not authenticated or not an admin
+        return redirect(url_for("Index_home"))
 
 @app.route("/customer_ui")
 def customer_ui():
     return render_template("customer_ui.html")
 
-
 if __name__ == "__main__":
     app.run(debug=True)
+    

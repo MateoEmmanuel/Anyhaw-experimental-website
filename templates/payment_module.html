@@ -91,9 +91,10 @@
                                 <button type="button" class="payment-btn" id="gcashOption">Gcash</button>
                             </div>
                             <input type="hidden" id="paymentMethod" name="paymentMethod" required>
+                            <hr>
                         </div>
 
-                        <hr>
+                        
 
                         <div id="cashInputSection" style="display: none;">
                             <label for="discount">Discount:</label>
@@ -107,6 +108,7 @@
                                     </button>
                                 {% endfor %}
                                 <button type="button" class="discount-btn" data-id="0" data-percent="0">No Discount</button>
+                                <hr>
                             </div>
 
                             <!-- Hidden inputs for form submission -->
@@ -114,7 +116,7 @@
                             <input type="hidden" name="discountPercent" id="discountPercent" value="0">
                             <input type="hidden" name="discountName" id="discountName" value="No Discount">
 
-                            <hr>
+                            
 
                             <!-- 👇 Discount display goes directly under discount buttons -->
                             <div id="selected-discount-display" style="display: none; margin: 8px;">
@@ -122,28 +124,32 @@
                                 <input type="text" id="showdiscount" readonly style="width: 80px;">
                                 <label for="discountedtotal">Money Discounted:</label>
                                 <input type="text" id="discountedPrice" readonly placeholder="₱0.00" style="width: 80px;">
+                                <hr>
                             </div>
 
-                            <hr>
+                            
 
                         <label for="cashGiven">Customer Paid:</label>
                             <input type="number" id="cashGiven" name="cashGiven" placeholder="₱0.00" min="0" step="0.01">
+                            <hr>
                         </div>
 
                         <div id="qrContainer" style="display: none; text-align: center;">
                             <label>Scan to Pay:</label>
-                            <br>
+                            <hr>
                             <img src="{{ url_for('static', filename='assets/images/Gcash_QR_CODE.png') }}" alt="GCash QR Code" style="width: 200px; height: 200px;">
+                            <hr>
                         </div>
 
-                        <hr>
+                        
 
                         <div id="changeSection" style="display: none;">
                             <label for="change">Change:</label>
                             <input type="text" id="change" name="change" placeholder="₱0.00" readonly>
+                            <hr>
                         </div>
 
-                        <hr>
+                        
 
                         <button type="submit" id="proceedToPrintBtn">Enter</button>
                     </form>

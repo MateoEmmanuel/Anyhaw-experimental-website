@@ -1,0 +1,273 @@
+/* ===================== General Styles ===================== */
+body, html {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    overflow-y: auto;
+    overflow-y: hidden;
+    font-family: 'Roboto', sans-serif;
+}
+
+header {
+    background: #ff6600;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 30px;
+    color: white;
+    height: 80px; /* fixed height */
+    flex-shrink: 0; /* prevent shrinking */
+}
+
+.main-section {
+    background-image: url("../images/background.png");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+}
+
+/* ===================== Logo ===================== */
+.logo-title img {
+    height: 60px;
+}
+
+.logo-title a {
+    display: inline-block;
+    cursor: pointer;
+}
+
+/* ===================== Navigation ===================== */
+nav {
+    display: flex;
+    align-items: center;
+    gap: 25px;
+}
+
+nav a {
+    color: white;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+/* ===================== Main Content ===================== */
+/* Main content fills the rest of the height */
+.content,
+.main-content {
+  flex: 1 1 auto; /* fill remaining space */
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  background-color: rgba(180, 169, 154, 0.9);
+  color: rgb(32, 11, 11);
+  padding: 20px;
+  overflow: hidden; /* hide overflow on outer container */
+  min-height: 0; /* allow inner scrolling */
+}
+
+/* Inner container scrolls vertically */
+.main-content-inner {
+  flex: 1 1 auto; /* fill remaining height */
+  display: flex;
+  flex-direction: row;
+  gap: 20px;
+  box-sizing: border-box;
+  overflow-y: auto; /* vertical scroll */
+  overflow-x: hidden;
+  min-height: 0; /* IMPORTANT: enables flex children to scroll properly */
+}
+
+
+/* ===================== Floating UI ===================== */
+.floating-ui,
+.floating-UI {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    padding: 10px;
+    background-color: white;
+    border-radius: 14px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+    z-index: 1000;
+}
+
+/* ===================== About Us Floating Panel ===================== */
+#aboutUsUI_cashier {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1100;
+}
+
+#overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+}
+
+.aboutus-ui,
+.floating-aboutus-inner {
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
+    border-radius: 12px;
+    padding: 20px;
+    max-width: 600px;
+    max-height: 80vh;
+    overflow-y: auto;
+    z-index: 1001;
+}
+
+.aboutus-content {
+    white-space: pre-wrap;
+    font-size: 1.25rem;
+    line-height: 1.6;
+}
+
+.white-close-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: transparent;
+    border: none;
+    color: #ffffff;
+    font-size: 18px;
+    cursor: pointer;
+}
+
+/* ===================== Settings Panel ===================== */
+.settings-panel {
+    display: none;
+    position: absolute;
+}
+
+.settings-panel.visible {
+    display: block;
+}
+
+/* ===================== Payment Section ===================== */
+.payment-container {
+    display: flex;
+    gap: 30px;
+    margin-top: 20px;
+}
+
+.order-list,
+.payment-form {
+    flex: 1;
+    padding: 15px 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 5px rgba(0,0,0,0.1);
+    background-color: #f9f9f9;
+}
+
+.order-list ul {
+    list-style: none;
+    padding: 0;
+}
+
+.payment-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.payment-row label {
+    flex: 1 0 140px;
+    font-weight: bold;
+}
+
+.payment-row input,
+.payment-row select,
+.payment-row output {
+    flex: 1 1 auto;
+    padding: 0.4rem;
+    font-size: 1rem;
+}
+
+.pay-btn {
+    background-color: #2196F3;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    font-size: 1.2rem;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.pay-btn:hover {
+    background-color: #1976D2;
+}
+
+/* ===================== Order Card ===================== */
+.order-details-section,
+.payment-module {
+    flex: 1;
+    padding: 20px;
+    background: #fff4e7;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.order-card {
+    background: #fff4e7;
+    padding: 12px;
+    border: 1px solid #ccc;
+    margin-bottom: 10px;
+    border-radius: 8px;
+}
+
+.payment-module form > div {
+    margin-bottom: 1rem;
+}
+.payment-module input[readonly] {
+    background-color: #f5f5f5;
+    border: 1px solid #ccc;
+}
+
+.modaloverlay{
+    display:none; 
+    position:fixed; 
+    top:0; 
+    left:0; 
+    width:100%; 
+    height:100%; 
+    background:rgba(0,0,0,0.5); 
+    z-index:999;
+}
+
+.confirmmodal{
+    display:none; 
+    position:fixed; 
+    top:50%; 
+    left:50%; 
+    transform:translate(-50%, -50%);
+    background:#fff;
+    border:1px solid #ccc; 
+    padding:20px; 
+    z-index:1000;
+}
+
+/* Optional: style for selected discount button */
+.discount-btn.selected {
+    background-color: #ff7f29;
+    color: white;
+}
+.discount-btn.hover{
+    background-color: #ff6803;
+    color: white;
+}
+
+.form-control{
+    margin-top: 5px;
+}

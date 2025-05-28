@@ -11,20 +11,23 @@ def cashier_delivery_stats_loader():
     try:
         # Get only 'Pending' orders including order_type and order_time
         cursor.execute("""
-            SELECT order_ID, transaction_id, table_number, order_status, order_type,
-                DATE_FORMAT(order_time, '%M %d %Y / %h:%i:%s %p') AS order_time,
-                customer_id, delivery_payment_status
-            FROM processing_orders 
-            WHERE order_status NOT IN ('pending', 'prepared', 'served')
-            AND (
-                    order_type != 'delivery' OR
-                    (order_type = 'delivery')
-                )
-            AND NOT (
-                    order_status = 'delivered' AND order_time > NOW() - INTERVAL 1 HOUR
-                )
-            ORDER BY order_time DESC
+            SELECT 
+                po.order_ID, 
+                po.transaction_id, 
+                po.table_number, 
+                po.order_status, 
+                po.order_type,
+                DATE_FORMAT(po.order_time, '%M %d %Y / %h:%i:%s %p') AS order_time,
+                po.customer_id,
+                ol.status AS delivery_payment_status
+            FROM processing_orders po
+            JOIN Ordered_Logs ol ON po.transaction_id = ol.Transaction_ID
+            WHERE po.order_status NOT IN ('pending')
+            AND po.order_type = 'delivery'
+            AND ol.status = 'unpaid'
+            ORDER BY po.order_time DESC
         """)
+
 
         orders_data = cursor.fetchall()
         
@@ -73,50 +76,45 @@ def cashier_delivery_stats_loader():
                 item['Item_Name'] = item_name
                 items.append(item)
 
+
             
         # Get customer names
-        for order in orders_data:
-            customer_id = order['customer_id']
-            if customer_id:
-                cursor.execute("""
-                    SELECT CONCAT(ca.Lname, ', ', ca.Fname, ' ', ca.Mname) AS Customer_Name, 
-                               ca.contact_number,
-                                        CONCAT(
-                                            cl.Street_Address, ', ',
-                                            cl.Barangay_Subdivision, ', ',
-                                            cl.City_Municipality, ', ',
-                                            cl.Province_Region, ' (Landmark: ',
-                                            cl.landmark, ')'
-                                        ) AS location
-                    FROM customer_accounts ca
-                    LEFT JOIN customer_locations cl ON ca.customer_id = cl.customer_id
-                    WHERE ca.customer_id = %s
-                """, (customer_id,))
-                result = cursor.fetchone()
-                order['customer_name'] = result['Customer_Name'] if result else "Unknown"
-                order['customer_contact'] = result['contact_number'] if result else "Unknown"
-                order['customer_location'] = result['location'] if result else "Unknown"
+        customer_id = order['customer_id']
+        if customer_id:
+            cursor.execute("""
+                SELECT CONCAT(ca.Lname, ', ', ca.Fname, ' ', ca.Mname) AS Customer_Name, 
+                    ca.contact_number,
+                    CONCAT(
+                        cl.Street_Address, ', ',
+                        cl.Barangay_Subdivision, ', ',
+                        cl.City_Municipality, ', ',
+                        cl.Province_Region, ' (Landmark: ',
+                        cl.landmark, ')'
+                    ) AS location
+                FROM customer_accounts ca
+                LEFT JOIN customer_locations cl ON ca.customer_id = cl.customer_id
+                WHERE ca.customer_id = %s
+            """, (customer_id,))
+            result = cursor.fetchone()
+            if result:
+                customer_name = result['Customer_Name']
+                customer_contact = result['contact_number']
+                customer_location = result['location']
 
-            else:
-                order['customer_name'] = "Walk-In Guest"
-                order['customer_contact'] = " "
-                order['customer_location'] = " "
-
-
-            orders.append({
-                'order_id': order['order_ID'],
-                'transaction_id': order['transaction_id'],
-                'table_number': order['table_number'],
-                'order_status': order['order_status'],
-                'order_type': order['order_type'],
-                'order_time': order['order_time'],
-                'customer': order['customer'],
-                'gcash_payed': order['gcash_payed'],
-                'customer_name': order['customer_name'],
-                'customer_contact': order['customer_contact'],
-                'customer_location': order['customer_location'],
-                'items': items
-            })
+        # Append fully built order
+        orders.append({
+            'order_id': order['order_ID'],
+            'transaction_id': order['transaction_id'],
+            'table_number': order['table_number'],
+            'order_status': order['order_status'],
+            'order_type': order['order_type'],
+            'order_time': order['order_time'],
+            'customer_name': customer_name,
+            'customer_contact': customer_contact,
+            'customer_location': customer_location,
+            'items': items,
+            'status': order['delivery_payment_status']  # 'status' here is used for payment status
+        })
 
         return render_template('Cashier_Delivery_status.html', orders=orders)
 

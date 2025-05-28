@@ -1,0 +1,118 @@
+document.addEventListener("DOMContentLoaded", function () {
+    console.log("Script loaded and DOM is ready");
+
+    const paymentMethodInput = document.getElementById("paymentMethod");
+    const cashGivenInput = document.getElementById("cashGiven");
+    const changeInput = document.getElementById("change");
+    const baseAmountInput = document.getElementById("baseAmount");
+    const deliveryFeeInput = document.getElementById("deliveryfee");
+
+    function resetPaymentFields() {
+        paymentMethodInput.value = "";
+        cashGivenInput.value = "";
+        changeInput.value = "";
+        cashGivenInput.placeholder = "₱0.00";
+        changeInput.placeholder = "₱0.00";
+        cashGivenInput.readOnly = false;
+    }
+
+    function updateChangeDisplay() {
+        const base = parseFloat(baseAmountInput.value.replace('₱', '')) || 0;
+        const deliveryFeeprice = parseFloat(deliveryFee.value) || 0;
+        const cash = parseFloat(cashGivenInput.value) || 0;
+
+        const totalToPay = base + deliveryFeeprice;
+        const change = cash - totalToPay;
+
+        if (changeInput) {
+            changeInput.value = `₱${change.toFixed(2)}`;
+        }
+    }
+
+    document.getElementById('cashOption').addEventListener('click', function () {
+        resetPaymentFields();
+        paymentMethodInput.value = 'cash';
+        paymentselected.value = 'Cash';
+
+        cashGivenInput.readOnly = false;
+        alert(paymentMethodInput.value)
+    });
+
+    document.getElementById('gcashOption').addEventListener('click', function () {
+        resetPaymentFields();
+        paymentMethodInput.value = 'gcash';
+        paymentselected.value = 'Gcash';
+        
+        const base = parseFloat(baseAmountInput.value.replace('₱', '')) || 0;
+        const deliveryFeeprice = parseFloat(deliveryFee.value) || 0;
+        const totalToPay = base + deliveryFeeprice;
+
+        cashGivenInput.value = totalToPay.toFixed(2);
+        cashGivenInput.readOnly = true;
+
+        changeInput.value = totalToPay.toFixed(2)-totalToPay.toFixed(2);
+
+        alert(paymentMethodInput, cashGivenInput.value, changeInput.value)
+    });
+
+    cashGiven.addEventListener("input", updateChangeDisplay);
+
+    // Button navigations
+    document.getElementById('homeBtn').addEventListener('click', () => {
+        window.location.href = '/backend/cashier/cashier_loader';
+    });
+
+    document.getElementById('returnToOrderQueueBtn').addEventListener('click', () => {
+        window.location.href = '/backend/cashier/order_queue_loader';
+    });
+});
+
+// ✅ Payment form submission
+document.getElementById('paymentForm').addEventListener('submit', async function (e) {
+    e.preventDefault();
+    console.log("Payment form submitted");
+
+    const form = e.target;
+    const formData = new FormData(form);
+
+    const paymentMethod = formData.get('paymentMethod');
+    const cashGiven = parseFloat(formData.get('cashGiven')) || 0;
+    const baseAmount = parseFloat(formData.get('baseAmountunformatted')) || 0;
+    const deliveryFee = parseFloat(formData.get('deliveryfee')) || 0;
+
+    const totalToPay = baseAmount + deliveryFee;
+
+    if (!paymentMethod) {
+        alert("⚠️❌ Please select a payment method before proceeding.");
+        return;
+    }
+
+    if (paymentMethod === 'cash' && cashGiven < totalToPay) {
+        alert("⚠️❌ Error: Money entered - ₱" + cashGiven.toFixed(2) +
+            " - is not enough! Total to pay: ₱" + totalToPay.toFixed(2));
+        return;
+    }
+
+    try {
+        const response = await fetch(form.action, {
+            method: 'POST',
+            body: formData
+        });
+
+        const contentType = response.headers.get("content-type");
+
+        if (contentType && contentType.includes("application/json")) {
+            const data = await response.json();
+            if (data.status === 'success') {
+                window.location.href = '/backend/cashier/order_queue_loader';
+            } else {
+                alert('❌ Error: ' + (data.message || 'Unknown error occurred.'));
+            }
+        } else {
+            alert('❌ Server did not return JSON. Check your backend.');
+        }
+
+    } catch (err) {
+        alert('⚠️ Payment failed: ' + err.message);
+    }
+});
