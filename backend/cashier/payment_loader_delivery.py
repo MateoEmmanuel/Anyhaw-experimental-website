@@ -13,8 +13,7 @@ def payment_delivery_module(order_id):
 
     if request.method == 'POST':
         try:
-            print(
-                "post request received for order ID:", order_id)
+            print("post request received for order ID:", order_id)
             
             
             cursor.execute("SELECT customer_id FROM processing_orders WHERE order_ID = %s", (order_id,))

@@ -104,3 +104,11 @@ document.addEventListener('DOMContentLoaded', function () {
         console.log("Proceeding with order ID:", orderId);
             window.location.href = `/backend/cashier/payment_delivery_payment_module/${orderId}`;
     }
+
+    document.getElementById('takeouthistory_btn').addEventListener('click', function () {
+    window.location.href = '/backend/cashier/cashier_takeout_history_loader';
+});
+
+document.getElementById('deliveryhistory_btn').addEventListener('click', function () {
+    window.location.href = '/backend/cashier/cashier_delivery_history_loader';
+});

@@ -48,9 +48,6 @@ document.addEventListener("DOMContentLoaded", function () {
         cashGivenInput.value = totalToPay.toFixed(2);
         cashGivenInput.readOnly = true;
 
-        // ✅ For debugging, use .value or console.log instead of alerting an object
-        alert(`Payment Method: ${paymentMethodInput.value}, Total to Pay: ₱${totalToPay.toFixed(2)}`);
-
     });
 
     cashGivenInput.addEventListener("input", updateChangeDisplay);
@@ -112,6 +109,3 @@ document.getElementById('paymentForm').addEventListener('submit', async function
     }
 });
 
-document.addEventListener('DOMContentLoaded', function () {
-
-});

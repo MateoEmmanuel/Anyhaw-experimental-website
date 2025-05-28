@@ -16,7 +16,6 @@ def cashier_dinein_history_loader():
                 status
             FROM Ordered_Logs
             WHERE order_type = 'dine-in'
-            AND DATE(Date_Time) = CURDATE()
             ORDER BY Date_Time DESC
         """)
         orders_data = cursor.fetchall()

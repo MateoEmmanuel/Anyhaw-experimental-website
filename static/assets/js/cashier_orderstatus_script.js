@@ -157,3 +157,11 @@ document.getElementById('dineinhistory_btn').addEventListener('click', function 
                 console.error('Error loading About Us content:', error);
             });
     });
+
+    document.getElementById('takeouthistory_btn').addEventListener('click', function () {
+    window.location.href = '/backend/cashier/cashier_takeout_history_loader';
+});
+
+document.getElementById('deliveryhistory_btn').addEventListener('click', function () {
+    window.location.href = '/backend/cashier/cashier_delivery_history_loader';
+});

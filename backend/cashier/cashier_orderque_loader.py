@@ -12,7 +12,7 @@ def order_queue_loader():
         # Get only 'Pending' orders including order_type and order_time
         cursor.execute("""
             SELECT order_ID, transaction_id, table_number, order_status, order_type,
-                DATE_FORMAT(order_time, '%M %d %Y / %h:%i:%s %p') AS order_time, customer_id, delivery_payment_status
+                DATE_FORMAT(order_time, '%M %d %Y / %h:%i:%s %p') AS order_time, customer_id
             FROM processing_orders 
             WHERE order_status = 'pending'
             ORDER BY order_time DESC

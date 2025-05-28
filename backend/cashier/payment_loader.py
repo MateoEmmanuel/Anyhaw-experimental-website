@@ -94,21 +94,20 @@ def payment_module(order_id):
             )
 
             if log_result['status'] == 'success':
-                # Update order_status and delivery_payment_status if delivery
+                # Update order_status if delivery
                 cursor.execute("UPDATE processing_orders SET order_status = 'preparing' WHERE order_ID = %s", (order_id,))
+                affected_rows = cursor.rowcount
 
-                if order_type == 'delivery':
-                    cursor.execute("UPDATE processing_orders SET delivery_payment_status = 'No' WHERE order_ID = %s", (order_id,))
 
-                conn.commit()
-
-                # Print receipt only for dine-in or take-out
-                if order_type != 'delivery':
-                    print_receipt_by_order_id(order_id, amount_paid, change_amount)
-
-                cursor.close()
-                conn.close()
-                return jsonify(status='success')
+                print(log_result,order_id)
+                print(f"Affected rows: {affected_rows}")
+                if affected_rows > 0:
+                    conn.commit()
+                    cursor.close()
+                    conn.close()
+                    return jsonify(status='success')
+                else:
+                    return jsonify(status='error', message='Order ID not found or status not updated')
 
             else:
                 cursor.close()
