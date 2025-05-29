@@ -1,31 +1,10 @@
-// ✅ Global helper functions (must be outside DOMContentLoaded)
-function toggleSettings() {
-    const panel = document.getElementById("settingsPanel");
-    if (panel) {
-        panel.style.display = panel.style.display === "block" ? "none" : "block";
-    }
-}
-
-function show(id) {
-    document.getElementById(id).style.display = "block";
-    document.getElementById("overlay").style.display = "block";
-}
-
-function hide(id) {
-    document.getElementById(id).style.display = "none";
-    document.getElementById("overlay").style.display = "none";
-}
-
-function hideAllUI() {
-    document.querySelectorAll(".floating-ui").forEach(el => el.style.display = "none");
-}
-
 document.addEventListener('DOMContentLoaded', function () {
     const menuItems = document.querySelectorAll('.options-item');
     const testingBtn = document.getElementById('testing_btn');
     const testingUI = document.getElementById('testingUI_interface');
 
     const closeBtn = document.getElementById('closeAboutUsBtn');
+    
 
     // Sidebar menu toggle
     menuItems.forEach(item => {
@@ -39,97 +18,173 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    // Optional: hide floating UI on ESC key press
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') {
-            testingUI.style.display = 'none';
-        }
+    document.querySelectorAll('.order-wrapper').forEach(orderWrapper => {
+        checkIfAllPrepared(orderWrapper);
     });
 
     document.getElementById('Home_btn').addEventListener('click', function () {
-        window.location.href = '/backend/cashier/cashier_loader';
+        window.location.href = '/backend/cashier/kitchen_loader';
     });
-});
 
-document.getElementById('aboutUsLink_cashier').addEventListener('click', function () {
-    console.log('Testing button clicked');
-        const aboutUsFilePath = "/static/assets/aboutus.txt";
-        fetch(aboutUsFilePath)
-                .then(response => {
-                    if (!response.ok) throw new Error('File not found');
-                    return response.text();
-                })
-                .then(data => {
-                    document.getElementById('aboutUsContent').innerHTML = data;
-                    document.getElementById('aboutUsUI_cashier').style.display = 'block';
-                })
-                .catch(error => {
-                    console.error('Error loading About Us content:', error);
+    function fetchOrdersLive() {
+        fetch('/api/kitchen_order_data')
+            .then(response => response.json())
+            .then(data => {
+                const orders = data.orders;
+                const container = document.querySelector('.main-content-inner');
+                container.innerHTML = ''; // Clear the current UI
+
+                // Regenerate orders dynamically
+                orders.forEach(order => {
+                    const div = document.createElement('div');
+                    div.className = 'order-card';
+                    div.innerHTML = `
+                        <h3>Order #${order.order_id} - ${order.order_type.toUpperCase()}</h3>
+                        <p><strong>Time:</strong> ${order.order_time}</p>
+                        <p><strong>Customer:</strong> ${order.customer}</p>
+                        <ul>
+                            ${order.items.map(item => `
+                                <li>${item.Item_Name} - ${item.Quantity} pcs (${item.Prep_status})</li>
+                            `).join('')}
+                        </ul>
+                        <button disabled>Serve Order</button>
+                    `;
+                    container.appendChild(div);
                 });
-});
-
-document.getElementById('closeAboutUsBtn').onclick = hideAllUI;
-
-document.getElementById('orderque_btn').addEventListener('click', function () {
-    window.location.href = '/backend/cashier/order_queue_loader';
-});
-
-document.getElementById('orderpreparationstatus_btn').addEventListener('click', function () {
-    window.location.href = '/backend/cashier/order_status_loader';
-});
-
-document.getElementById('orderserved_btn').addEventListener('click', function () {
-    window.location.href = '/backend/cashier/served_order_loader';
-});
-
-document.getElementById('deliverystatus_btn').addEventListener('click', function () {
-    window.location.href = '/backend/cashier/cashier_delivery_stats_loader';
-});
-
-
-document.getElementById('closeAboutUsBtn').onclick = hideAllUI;
-
-function proceedToPayment(button) {
-    // Get the parent order card div
-    const orderCard = button.closest('.order-card');
-    // Find the hidden input with class 'order-id'
-    const orderId = orderCard.querySelector('.order-id').value;
-    
-    // Now you have the hidden order ID, you can send it to backend or redirect
-    console.log("Proceeding with order ID:", orderId);
-
-    // Example: redirect to payment page for that order
-    const ordertype = orderCard.querySelector('.order-type').value;
-    if (ordertype === 'delivery') {
-        window.location.href = `/backend/cashier/payment_delivery_module/${orderId}`;
-    } else{ 
-        window.location.href = `/backend/cashier/payment_module/${orderId}`;
+                // Update colors after rendering
+                updateOrderCardColors();
+            })
+            .catch(err => console.error('Error fetching orders:', err));
     }
-    
+
+    // Call once every 10 seconds
+    setInterval(fetchOrdersLive, 10000);
+
+    // Call once on page load
+    window.onload = fetchOrdersLive;
+
+    function updateOrderCardColors() {
+        const now = new Date();
+
+        document.querySelectorAll('.order-wrapper').forEach(wrapper => {
+            const timeElem = wrapper.querySelector('p strong');
+            if (!timeElem) return;
+
+            const orderTimeText = timeElem.parentNode.textContent;
+            const orderTimeStr = orderTimeText.replace(/Time:|Order Time:/, '').trim();
+
+            const orderTime = new Date(orderTimeStr);
+            if (isNaN(orderTime)) {
+                wrapper.style.backgroundColor = '';
+                return;
+            }
+
+            const diffMins = (now - orderTime) / (1000 * 60);
+
+            if (diffMins < 15) {
+                wrapper.style.backgroundColor = 'white';
+            } else if (diffMins >= 15 && diffMins < 30) {
+                wrapper.style.backgroundColor = '#FFA500'; // orange
+            } else {
+                wrapper.style.backgroundColor = '#FF6347'; // red
+            }
+        });
+    }
+
+});
+
+function updatePrepStatus(button) {
+    const row = button.closest('tr');
+    const orderWrapper = button.closest('.order-wrapper');
+    const prepStatusCell = row.querySelector('.prep-status-cell');
+    const orderListId = row.dataset.orderListId || row.getAttribute('data-order-list-id');
+
+    fetch('/update_item_prep_status', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            order_list_id: orderListId,
+            prep_status: 'prepared'
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Update UI
+            prepStatusCell.textContent = 'prepared';
+            row.setAttribute('data-prep-status', 'prepared');
+            button.innerHTML = '✔';
+            button.disabled = true;
+            button.classList.add('cooked');
+
+            // Check if all are prepared
+            checkIfAllPrepared(orderWrapper);
+        } else {
+            alert("Update failed: " + data.message);
+        }
+    });
 }
 
-document.getElementById('orderpreparationstatus_btn').addEventListener('click', function () {
-    window.location.href = '/backend/cashier/order_status_loader';
-});
-document.getElementById('orderque_btn').addEventListener('click', function () {
-    window.location.href = '/backend/cashier/order_queue_loader';
-});
-document.getElementById('orderserved_btn').addEventListener('click', function () {
-    window.location.href = '/backend/cashier/served_order_loader';
-});
+function checkIfAllPrepared(orderWrapper) {
+    const rows = orderWrapper.querySelectorAll('tbody tr');
+    const serveBtn = orderWrapper.querySelector('.proceedtopayment-btn');
+    let allPrepared = true;
 
-document.getElementById('deliverystatus_btn').addEventListener('click', function () {
-    window.location.href = '/backend/cashier/cashier_delivery_stats_loader';
-});
+    rows.forEach(row => {
+        const status = row.getAttribute('data-prep-status');
+        if (status !== 'prepared') {
+            allPrepared = false;
+        }
+    });
 
-document.getElementById('dineinhistory_btn').addEventListener('click', function () {
-    window.location.href = '/backend/cashier/cashier_dinein_history_loader';
-});
+    serveBtn.disabled = !allPrepared;
+}
 
-document.getElementById('takeouthistory_btn').addEventListener('click', function () {
-    window.location.href = '/backend/cashier/cashier_takeout_history_loader';
-});
 
-document.getElementById('deliveryhistory_btn').addEventListener('click', function () {
-    window.location.href = '/backend/cashier/cashier_delivery_history_loader';
-});
+
+function servetheorder(button) {
+    const orderCard = button.closest('.order-card').previousElementSibling;  // the table
+    const rows = orderCard.querySelectorAll('tbody tr');
+
+    let allPrepared = true;
+    rows.forEach(row => {
+        const prepStatus = row.dataset.prepStatus;
+        if (prepStatus !== 'prepared') {
+            allPrepared = false;
+        }
+    });
+
+    if (!allPrepared) {
+        alert("All items must be marked as 'Prepared' before serving.");
+        return;
+    }
+
+    // Proceed to serve the order (e.g., send to backend)
+    const orderId = button.parentElement.querySelector('.order-id').value;
+    const orderType = button.parentElement.querySelector('.order-type').value;
+
+    fetch('/update_order_status', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            order_id: orderId,
+            order_type: orderType
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert("Order served successfully.");
+            button.disabled = true;
+            button.innerText = "Served";
+        } else {
+            alert("Failed to serve order: " + data.message);
+        }
+    });
+}
+
+

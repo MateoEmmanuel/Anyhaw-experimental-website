@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Any-Haw Litson Manok</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/kitchen_public_orderque_style.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='assets/images/navbar_logo.png') }}">
+</head>
+<body>
+    <header>
+        <div class="logo-title">
+            <a href="/backend/cashier/kitchen_loader">
+                <img src="{{ url_for('static', filename='assets/images/navbar_logo.png') }}" alt="Any-Haw Logo">
+            </a>
+        </div>
+        <nav>
+            <a href="#" id="Home_btn">HOME</a>  <!-- ✅ CORRECT -->
+            <a href="#" id="Fullscreen_btn" onclick="event.preventDefault(); document.documentElement.requestFullscreen();">🔳 Fullscreen</a>
+        </nav>
+    </header>
+        <!-- kitchen_orders.html -->
+        <div class="main-section">
+            <div class="sidebar">
+                <ul class="options">
+                    <li class="options-item"><a href="#">Kitchen Panel</a></li>
+                </ul>
+            </div>
+            <div class="main-content">
+                <div class="main-content-inner">
+                    <h2 style="color:#fff">Order Queue</h2>
+                    <div style="display: flex; gap: 30px;">
+                        <!-- Preparing Orders Column -->
+                        <div style="flex: 1; background-color: #a36200; border-radius: 10px; padding: 15px;">
+                            <h3 style="color:#fff; text-align:center;">Preparing</h3>
+                            {% if preparing_orders %}
+                                {% for order in preparing_orders %}
+                                    <div class="order-card" style="background-color: #f7e9d4; padding: 20px; text-align: center; border-radius: 10px; margin: 10px 0;">
+                                        <strong style="font-size: 2rem; color: #a36200;">
+                                            {% if order.order_type == 'delivery' %}
+                                                De-{{ order.order_ID }}
+                                            {% elif order.order_type == 'take-out' %}
+                                                T-{{ order.order_ID }}
+                                            {% else %}
+                                                D-{{ order.order_ID }}
+                                            {% endif %}
+                                        </strong>
+                                    </div>
+                                {% endfor %}
+                            {% else %}
+                                <p class="noqueue">No orders to prepare</p>
+                            {% endif %}
+                        </div>
+
+                        <!-- Ready to Serve Column -->
+                        <div style="flex: 1; background-color: #a36200; border-radius: 10px; padding: 15px;">
+                            <h3 style="color:#fff; text-align:center;">Ready to Serve</h3>
+                            {% if serving_orders %}
+                                {% for order in serving_orders %}
+                                    <div class="order-card" style="background-color: #f7e9d4; padding: 20px; text-align: center; border-radius: 10px; margin: 10px 0;">
+                                        <strong style="font-size: 2rem; color: #a36200;">
+                                            {% if order.order_type == 'delivery' %}
+                                                De-{{ order.order_ID }}
+                                            {% elif order.order_type == 'take-out' %}
+                                                T-{{ order.order_ID }}
+                                            {% else %}
+                                                D-{{ order.order_ID }}
+                                            {% endif %}
+                                        </strong>
+                                    </div>
+                                {% endfor %}
+                            {% else %}
+                                <p class="noqueue">No orders to serve</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</body>
+</html>
+
+<script>
+    let previousServingOrders = new Set();
+    const tingSound = new Audio("{{ url_for('static', filename='assets/audio/ting.mp3') }}");
+
+    setInterval(function() {
+        fetch('/kitchen_public_order_queue_loader')
+            .then(response => response.text())
+            .then(html => {
+                const parser = new DOMParser();
+                const newDoc = parser.parseFromString(html, 'text/html');
+                const updatedContent = newDoc.querySelector('.main-content-inner');
+
+                if (updatedContent) {
+                    // Extract new serving order IDs before replacing content
+                    const newServingOrders = new Set();
+                    updatedContent.querySelectorAll('.order-card').forEach(card => {
+                        const text = card.textContent.trim();
+                        if (text.startsWith('T-') || text.startsWith('D-') || text.startsWith('De-')) {
+                            newServingOrders.add(text);
+                        }
+                    });
+
+                    // Compare and play ting if there is a new one
+                    let hasNewOrder = false;
+                    newServingOrders.forEach(id => {
+                        if (!previousServingOrders.has(id)) {
+                            hasNewOrder = true;
+                        }
+                    });
+
+                    if (hasNewOrder) {
+                        tingSound.play();
+                    }
+
+                    previousServingOrders = newServingOrders;
+
+                    // Update the DOM
+                    document.querySelector('.main-content-inner').innerHTML = updatedContent.innerHTML;
+                }
+            });
+    }, 5000);
+
+    function fadeOutOldOrders() {
+        document.querySelectorAll('.order-card').forEach(card => {
+            const isGone = !card.innerHTML.trim(); // simulate check
+            if (isGone) {
+                card.classList.add('fade-out');
+                setTimeout(() => card.remove(), 1000);
+            }
+        });
+    }
+    setInterval(fadeOutOldOrders, 10000);
+
+    function toggleFullscreen() {
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen();
+        } else {
+            document.exitFullscreen();
+        }
+    }
+</script>

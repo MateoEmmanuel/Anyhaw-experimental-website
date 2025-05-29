@@ -3,29 +3,35 @@ from backend.dbconnection import create_connection
 
 kitchen_orderqueue_bp = Blueprint('kitchen_orderqueue', __name__)
 
-@kitchen_orderqueue_bp.route('/kitchen_order_queue_loader')
-def order_queue_loader():
+@kitchen_orderqueue_bp.route('/kitchen_public_order_queue_loader')
+def kitchen_public_order_queue_loader():
     conn = create_connection()
     cursor = conn.cursor(dictionary=True)
 
     try:
-        # Get only 'Pending' orders including order_type and order_time
+        # Get both 'preparing' and 'ready to serve' orders
         cursor.execute("""
             SELECT order_ID, transaction_id, table_number, order_status, order_type,
                 DATE_FORMAT(order_time, '%M %d %Y / %h:%i:%s %p') AS order_time, customer_id
             FROM processing_orders 
-            WHERE order_status = 'pending'
-            ORDER BY order_time DESC
+            WHERE order_status IN ('preparing', 'serve', 'waiting for pickup')
+            ORDER BY order_time DESC,
+                    CASE order_type
+                        WHEN 'dine-in' THEN 1
+                        WHEN 'take-out' THEN 2
+                        WHEN 'delivery' THEN 3
+                        ELSE 4
+                    END
         """)
-
         orders_data = cursor.fetchall()
-        
-        orders = []
+
+        preparing_orders = []
+        serving_orders = []
 
         for order in orders_data:
             order_id = order['order_ID']
 
-            # 🔄 Move items logic INSIDE this loop
+            # Fetch items
             cursor.execute("""
                 SELECT item_id, Item_Type, Quantity, Price_Per_Item, Total_Item_Price 
                 FROM processing_order_items 
@@ -66,20 +72,19 @@ def order_queue_loader():
                 item['Item_Name'] = item_name
                 items.append(item)
 
-            # 🔄 Move customer info logic here too
+            # Customer info
             customer_id = order['customer_id']
-            
             if customer_id:
                 cursor.execute("""
                     SELECT CONCAT(ca.Lname, ', ', ca.Fname, ' ', ca.Mname) AS Customer_Name, 
-                               ca.contact_number,
-                                        CONCAT(
-                                            cl.Street_Address, ', ',
-                                            cl.Barangay_Subdivision, ', ',
-                                            cl.City_Municipality, ', ',
-                                            cl.Province_Region, ' (Landmark: ',
-                                            cl.landmark, ')'
-                                        ) AS location
+                           ca.contact_number,
+                           CONCAT(
+                               cl.Street_Address, ', ',
+                               cl.Barangay_Subdivision, ', ',
+                               cl.City_Municipality, ', ',
+                               cl.Province_Region, ' (Landmark: ',
+                               cl.landmark, ')'
+                           ) AS location
                     FROM customer_accounts ca
                     LEFT JOIN customer_locations cl ON ca.customer_id = cl.customer_id
                     WHERE ca.customer_id = %s
@@ -88,15 +93,13 @@ def order_queue_loader():
                 customer_name = result['Customer_Name'] if result else "Unknown"
                 customer_contact = result['contact_number'] if result else "Unknown"
                 customer_location = result['location'] if result else "Unknown"
-
             else:
                 customer_name = "Walk-In Guest"
                 customer_contact = " "
                 customer_location = " "
 
-
-            orders.append({
-                'order_id': order['order_ID'],
+            order_data = {
+                'order_ID': order['order_ID'],
                 'transaction_id': order['transaction_id'],
                 'table_number': order['table_number'],
                 'order_status': order['order_status'],
@@ -107,13 +110,26 @@ def order_queue_loader():
                 'customer_contact': customer_contact,
                 'customer_location': customer_location,
                 'items': items
-            })
+            }
 
-        return render_template('kitchen_order_que.html', orders=orders)
+            if order['order_status'] == 'preparing':
+                preparing_orders.append(order_data)
+            elif order['order_status'] in ['serve', 'waiting for pickup']:
+                serving_orders.append(order_data)
+
+        return render_template(
+            'kitchen_public_orderstatus_view.html',
+            preparing_orders=preparing_orders,
+            serving_orders=serving_orders
+        )
 
     except Exception as e:
         print("Error loading order queue:", e)
-        return render_template('kitchen_order_que.html', orders=[])
+        return render_template(
+            'kitchen_public_orderstatus_view.html',
+            preparing_orders=[],
+            serving_orders=[]
+        )
 
     finally:
         cursor.close()
@@ -145,7 +161,7 @@ def update_order_status():
         if order_type == 'delivery':
             new_status = 'waiting for pickup'
         else:
-            new_status = 'serve'
+            new_status = 'served'
 
         # Update processing_orders table
         cursor.execute("""
