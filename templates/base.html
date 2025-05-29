@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>{% block title %}{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap"
+        rel="stylesheet">
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+   <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    backgroundColor: {
+                        'custom-orange': '#ff6600',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+
+<body class="bg-white h-screen">
+    <!-- Updated Navigation Bar -->
+    <nav class="bg-custom-orange p-4 py-2 border-b border-gray-200 shadow-lg justify-between pl-[50px] flex flex-row items-center">
+      <div class="flex flex-row items-center justify-between w-full">
+        <div class="flex items-center w-full">
+            <a href="/" class="flex flex-col items-start">
+                <span class="text-white text-4xl font-bold font-poppins">Any-Haw</span>
+                <span class="text-white text-lg font-medium bg-red-900 px-2 py-1 rounded">LITSONG MANOK</span>
+            </a>
+        </div>
+        <div class="flex flex-row items-center space-x-4 w-full justify-end mr-[30px]">
+        </div>
+      </div>
+    </nav>
+
+    <div class="bg-white min-h-screen ">
+        {% block content %}
+        {% endblock %}
+    </div>
+
+    <style>
+        .active {
+            color: #000000;
+            border-bottom: 2px solid #000000;
+            text-decoration: none;
+        }
+    </style>
+</body>
+
+</html>

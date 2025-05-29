@@ -1,0 +1,938 @@
+{% extends "base.html" %}
+{% block title %}Menu{% endblock %}
+{% block content %}
+<!-- Add SweetAlert2 CDN -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<style>
+    /* Custom styles for scroll indicator */
+    .scrollbar-hide::-webkit-scrollbar {
+        display: none;
+    }
+
+    .scrollbar-hide {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+
+    /* Active state for clicked category */
+    .category-active {
+        background-color: #b71c1c;
+        color: #ffffff;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.445);
+        transform: scale(1.05);
+        transition: all 0.2s ease-in-out;
+        font-weight: 500;
+        font-family: 'Poppins', sans-serif;
+        font-size: 10px;
+        border-radius: 25px;
+    }
+
+    /* Menu card styles */
+    .menu-card {
+        border: 1px solid #b71c1c;
+        border-radius: 25px;
+        padding: 15px;
+        width: 200%;
+        max-width: 200px;
+        background: #FFFFFF;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        transition: all 0.2s ease-in-out;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-evenly;
+        height: 335px;
+    }
+
+    .menu-card:hover {
+        transform: scale(1.03);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.445);
+    }
+
+    .menu-card img {
+        width: 100%;
+        height: 140px;
+        object-fit: cover;
+        border-radius: 8px;
+        margin-bottom: 10px;
+    }
+
+    .menu-card .title {
+        font-family: 'Poppins', sans-serif;
+        font-size: 16px;
+        font-weight: bold;
+        color: #000000;
+        margin-bottom: 5px;
+        overflow: hidden;
+        text-overflow: hidden;
+        white-space: nowrap;
+    }
+
+    .menu-card .desc {
+        font-family: 'Roboto', sans-serif;
+        font-size: 12px;
+        font-weight: bold;
+        color: #919191;
+        box-shadow: #000;
+        margin-bottom: 10px;
+        line-clamp: 2;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+    }
+
+    .menu-card .price {
+        font-family: 'Poppins', sans-serif;
+        font-size: 18px;
+        font-weight: 600;
+        color: #ff6600;
+        margin-bottom: 5px;
+    }
+
+    .menu-card .status {
+        display: inline-block;
+        padding: 4px 8px;
+        border-radius: 2px;
+        font-family: 'Poppins', sans-serif;
+        font-size: 12px;
+        font-weight: 500;
+        margin-bottom: 10px;
+    }
+
+    .menu-card .status.available {
+        background-color: #ff6600;
+        color: #FFFFFF;
+        border-radius: 25px;
+    }
+
+    .menu-card .status.not-available {
+        background-color: #980003;
+        color: #FFFFFF;
+        border-radius: 25px;
+    }
+
+    .menu-card .add-to-cart {
+        background-color: #ff6600;
+        color: #FFFFFF;
+        border: none;
+        padding: 8px;
+        border-radius: 15px;
+        font-family: 'Poppins', sans-serif;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background-color 0.3s ease-in-out;
+        width: 100%;
+    }
+
+    .menu-card .add-to-cart:hover {
+        background-color: #ff6600;
+    }
+
+    /* Cart item styles */
+    .cart-item {
+        display: flex;
+        align-items: center;
+        padding: 10px 0;
+        border-bottom: 1px solid #E1E1E1;
+    }
+
+    .cart-item:last-child {
+        border-bottom: none;
+        border-radius: 25px;
+    }
+
+    .cart-item img {
+        width: 50px;
+        height: 50px;
+        object-fit: cover;
+        border-radius: 5px;
+        margin-right: 10px;
+        background-color: #f0f0f0;
+        /* Placeholder background if image fails */
+    }
+
+    .cart-item .title {
+        font-family: 'Poppins', sans-serif;
+        font-size: 14px;
+        font-weight: 500;
+        color: #333333;
+        flex: 1;
+        border-radius: 25px;
+    }
+
+    .cart-item .price {
+        font-family: 'Poppins', sans-serif;
+        font-size: 14px;
+        font-weight: 600;
+        color: #b71c1c;
+        margin-left: 10px;
+    }
+
+    .cart-item .quantity-controls {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        border-radius: 25px;
+    }
+
+    .cart-item .quantity-controls button {
+        background-color: #ff6600;
+        color: #FFFFFF;
+        border: none;
+        border-radius: 50%;
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: 16px;
+        transition: background-color 0.3s ease-in-out;
+    }
+
+    .cart-item .quantity-controls button:hover {
+        background-color: #ff6600;
+    }
+
+    .cart-item .quantity-controls span {
+        font-family: 'Poppins', sans-serif;
+        font-size: 14px;
+        color: #333333;
+    }
+
+    /* Payment method styles */
+    .payment-btn {
+        flex: 1;
+        padding: 8px;
+        border-radius: 5px;
+        font-family: 'Poppins', sans-serif;
+        font-size: 14px;
+        font-weight: 500;
+        color: #333333;
+        background-color: #E1E1E1;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s ease-in-out;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .payment-btn:hover {
+        background-color: #d0d0d0;
+    }
+
+    .payment-btn.active {
+        background-color: #ff6600;
+        color: #FFFFFF;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+        animation: select-payment 0.2s ease-in-out;
+    }
+
+    .payment-btn.active:hover {
+        background-color: #ff6600;
+        transform: scale(1.02);
+    }
+
+    /* Animation for payment method selection */
+    @keyframes select-payment {
+        0% {
+            transform: scale(1);
+        }
+
+        50% {
+            transform: scale(1.05);
+        }
+
+        100% {
+            transform: scale(1);
+        }
+    }
+
+    /* Place order button */
+    .place-order-btn {
+        width: 100%;
+        padding: 10px;
+        background-color: #ff6600;
+        color: #FFFFFF;
+        border: none;
+        border-radius: 15px;
+        font-family: 'Poppins', sans-serif;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background-color 0.3s ease-in-out;
+    }
+
+    .place-order-btn:hover {
+        background-color: #ff6600;
+    }
+
+    .place-order-btn:disabled {
+        background-color: #cccccc;
+        cursor: not-allowed;
+    }
+
+    /* Add receipt styles */
+    .receipt {
+        font-family: 'Courier New', monospace;
+        padding: 20px;
+        background: white;
+        border: 1px dashed #ccc;
+        margin: 20px 0;
+    }
+
+    .receipt-header {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    .receipt-items {
+        margin: 20px 0;
+    }
+
+    .receipt-item {
+        display: flex;
+        justify-content: space-between;
+        margin: 5px 0;
+    }
+
+    .receipt-total {
+        border-top: 1px dashed #000;
+        margin-top: 10px;
+        padding-top: 10px;
+    }
+
+    .receipt-footer {
+        text-align: center;
+        margin-top: 20px;
+        font-size: 12px;
+    }
+
+    /* Add sliding container styles */
+    .cart-container {
+        position: fixed;
+        right: -500px; /* Start hidden */
+        top: 0;
+        width: 25%;
+        min-width: 350px;
+        height: 100vh;
+        background: #ffffff;
+        box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
+        transition: right 0.3s ease-in-out;
+        z-index: 1000;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .cart-container.show {
+        right: 0;
+    }
+
+    .cart-toggle {
+        position: fixed;
+        right: 20px;
+        top: 20px;
+        background: #ff6600;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+        z-index: 999;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    }
+
+    .cart-toggle:hover {
+        background: #b71c1c;
+    }
+
+    .cart-count {
+        background: white;
+        color: black;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: bold;
+    }
+
+    /* Add styles for the fixed bottom section */
+    .cart-container .sticky {
+        background: white;
+        border-top: 1px solid #E1E1E1;
+        box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+    }
+
+    /* Ensure scrollable content doesn't overlap with fixed bottom */
+    .cart-container .overflow-y-auto {
+        padding-bottom: 20px;
+    }
+
+    /* Add overlay and close button styles */
+    .cart-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease-in-out;
+        z-index: 999;
+    }
+
+    .cart-overlay.show {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    .cart-close-btn {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        background: #f3f4f6;
+        border: none;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s ease-in-out;
+        z-index: 1001;
+    }
+
+    .cart-close-btn:hover {
+        background: #e5e7eb;
+        transform: rotate(90deg);
+    }
+
+    /* Remove animation keyframes and simplify highlight style */
+    .menu-card.highlighted {
+        border: 2px solid #b71c1c;
+        box-shadow: 0 0 8px rgba(183, 28, 28, 0.3);
+        transform: scale(1.02);
+        transition: all 0.3s ease;
+    }
+
+    .search-input {
+        width: 100%;
+        padding: 10px 40px;
+        border: 2px solid #E1E1E1;
+        border-radius: 8px;
+        font-family: 'Poppins', sans-serif;
+        font-size: 14px;
+        transition: all 0.3s ease;
+    }
+
+    .search-input:focus {
+        outline: none;
+        border-color: #b71c1c;
+        box-shadow: 0 0 0 2px rgba(183, 28, 28, 0.1);
+    }
+
+    .search-wrapper {
+        position: relative;
+        margin-bottom: 20px;
+    }
+
+    .search-icon {
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #666;
+    }
+
+    .no-results {
+        text-align: center;
+        padding: 20px;
+        color: #666;
+        font-family: 'Poppins', sans-serif;
+        font-size: 16px;
+    }
+
+    /* Add styles for colored toast */
+    .colored-toast.swal2-icon-success {
+        background-color: #ff6600 !important;
+    }
+    
+    .colored-toast.swal2-icon-error {
+        background-color: #dc3545 !important;
+    }
+    
+    .colored-toast .swal2-title,
+    .colored-toast .swal2-html-container {
+        color: white !important;
+    }
+
+    /* Make the main content area take full width when cart is closed */
+    .flex-1 {
+        width: 100%;
+    }
+</style>
+  <!-- Cart Overlay -->
+    <div class="cart-overlay" id="cartOverlay" onclick="closeCart()"></div>
+
+    <!-- Main Content Area -->
+    <div class="flex-1 bg-[#ffffff] p-4 px-[50px] h-full">
+        <span class="font-roboto text-[20px] font-medium text-[#333333] mt-[20px]">What's your cravings?</span>
+
+        <!-- Search Bar -->
+        <div class="search-wrapper mt-4">
+            <span class="search-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+            </span>
+            <input type="text" 
+                id="foodSearch"
+                class="search-input" 
+                placeholder="Search for food items..."
+                oninput="searchFood(this.value)">
+        </div>
+
+        <div class="mt-[15px] overflow-x-auto scrollbar-hide" id="category-list">
+            <div class="flex flex-row flex-nowrap">
+                {% for category in categories %}
+                <div class="category-card border h-[80px] border-[#b7b7b7] rounded-[2px] p-[12px] w-[calc(50%-20px)] sm:w-[calc(20%-20px)] lg:w-[calc(12%-20px)] hover:text-white mr-[20px] mb-[20px] flex flex-col justify-between transition-all duration-200 hover:scale-105 hover:shadow-lg hover:bg-[#009830] shrink-0 cursor-pointer"
+                    onclick="selectCategory(this, '{{ category.title }}')">
+                    <img src="{{ category.icon }}" alt="{{ category.title }}"
+                        class="w-[32px] h-[32px] object-contain rounded-[2px] mb-2">
+                    <span class="font-poppins font-medium text-[11px]">{{ category.title }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="mt-[15px] grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-[20px]" id="menu-items">
+            <!-- Menu items will be populated by JavaScript -->
+        </div>
+    </div>
+
+    <!-- Cart Toggle Button -->
+    <div class="cart-toggle" onclick="toggleCart()">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+        </svg>
+        <span>Cart</span>
+        <span class="cart-count" id="cartToggleCount">0</span>
+    </div>
+
+    <!-- Right Column: Cart Component -->
+    <div class="cart-container" id="cartContainer">
+        <button class="cart-close-btn" onclick="closeCart()">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        </button>
+        <div class="flex flex-col h-full">
+            <!-- Cart Header -->
+            <div class="p-4 border-b border-[#E1E1E1]">
+                <span class="font-roboto text-[18px] font-medium text-[#333333]">Total Cart <span id="cartCount">0</span></span>
+            </div>
+
+            <!-- Scrollable Content -->
+            <div class="flex-1 overflow-y-auto p-4">
+                <div id="cart-items" class="mt-2"></div>
+            </div>
+
+            <!-- Fixed Bottom Section -->
+            <div class="sticky bottom-0 bg-white p-4 border-t border-[#E1E1E1] shadow-lg">
+                <!-- Receipt -->
+                <div class="mb-4">
+                    <div class="flex justify-between font-poppins text-[14px] text-[#333333]">
+                        <span>Subtotal</span>
+                        <span id="subtotal">₱0.00</span>
+                    </div>
+                    <div class="flex justify-between font-poppins text-[16px] font-medium text-[#333333] mt-2">
+                        <span>Total Amount</span>
+                        <span id="total">₱0.00</span>
+                    </div>
+                </div>
+
+                <!-- Place Order Button -->
+                <div class="mb-4">
+                    <button id="place-order-btn" class="place-order-btn" onclick="placeOrder()">
+                        Place Order
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Store categories data from Jinja
+    const categories = {{ categories | tojson | safe }};
+    const fallbackImage = "{{ url_for('static', filename='images/placeholder.jpg') }}";
+    let cartItems = [];
+    let isUpdatingCart = false; // Prevent multiple updates
+
+    // Function to display menu items for a given category
+    function displayMenuItems(categoryTitle) {
+        const menuItemsContainer = document.getElementById('menu-items');
+        const category = categories.find(cat => cat.title === categoryTitle);
+        if (!category) return;
+
+        menuItemsContainer.innerHTML = '';
+        
+        // Reset search input
+        const searchInput = document.getElementById('foodSearch');
+        if (searchInput) {
+            searchInput.value = '';
+        }
+
+        category.menus.forEach(menu => {
+            const menuCard = document.createElement('div');
+            menuCard.className = 'menu-card';
+            const picture = menu.picture ? menu.picture : fallbackImage;
+            menuCard.innerHTML = `
+                <img src="${picture}" alt="${menu.menu_title}" onerror="this.src='${fallbackImage}'; console.warn('Failed to load menu image: ${picture}');">
+                <div class="flex flex-col items-start space-y-[-5px]">
+                    <p class="title">${menu.menu_title}</p>
+                    <p class="desc">${menu.menu_desc}</p>
+                </div>
+                <div class="flex justify-between items-center">
+                    <p class="price">₱${menu.menu_price.toFixed(2)}</p>
+                    <span class="status ${menu.status === 'available' ? 'available' : 'not-available'}">
+                        ${menu.status.charAt(0).toUpperCase() + menu.status.slice(1)}
+                    </span>
+                </div>
+                <button class="add-to-cart" onclick="addToCart('${menu.menu_title}', ${menu.menu_price}, '${picture}', '${menu.status}')">Add to Cart</button>
+            `;
+            menuItemsContainer.appendChild(menuCard);
+        });
+    }
+
+    // Category click handler
+    function selectCategory(element, categoryTitle) {
+        document.querySelectorAll('.category-card').forEach(card => {
+            card.classList.remove('category-active');
+        });
+        element.classList.add('category-active');
+        displayMenuItems(categoryTitle);
+    }
+
+    // Add to cart function
+    function addToCart(title, price, picture, status) {
+        // Validate inputs
+        if (!title || isNaN(price) || !picture) {
+            console.warn('Invalid cart item:', { title, price, picture, status });
+            return;
+        }
+        // Check status
+        if (status !== 'available') {
+            // Show error toast for unavailable items
+            const Toast = Swal.mixin({
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 2000,
+                timerProgressBar: true,
+                customClass: {
+                    popup: 'colored-toast'
+                }
+            });
+
+            Toast.fire({
+                icon: 'error',
+                title: title + ' is currently not available'
+            });
+            return;
+        }
+        const existingItem = cartItems.find(item => item.title === title);
+        if (existingItem) {
+            existingItem.quantity += 1;
+        } else {
+            cartItems.push({ 
+                title, 
+                price, 
+                picture, 
+                quantity: 1,
+                comment: '' // Add comment field
+            });
+        }
+        
+        // Show success toast for available items
+        const Toast = Swal.mixin({
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 2000,
+            timerProgressBar: true,
+            customClass: {
+                popup: 'colored-toast'
+            }
+        });
+
+        Toast.fire({
+            icon: 'success',
+            title: title + ' added to cart'
+        });
+
+        updateCartDisplay();
+        updateCartCount();
+    }
+
+    // Update quantity
+    function updateQuantity(title, delta) {
+        const item = cartItems.find(item => item.title === title);
+        if (item) {
+            item.quantity = Math.max(0, item.quantity + delta);
+            if (item.quantity === 0) {
+                cartItems = cartItems.filter(i => i.title !== title);
+            }
+            updateCartDisplay();
+        }
+    }
+
+    // Update cart display
+    function updateCartDisplay() {
+        if (isUpdatingCart) return;
+        isUpdatingCart = true;
+
+        try {
+            const cartItemsContainer = document.getElementById('cart-items');
+            const cartCount = document.getElementById('cartCount');
+            const totalEl = document.getElementById('total');
+            const placeOrderBtn = document.getElementById('place-order-btn');
+
+            cartItemsContainer.innerHTML = '';
+            let total = 0;
+
+            cartItems.forEach(item => {
+                total += item.price * item.quantity;
+                const cartItem = document.createElement('div');
+                cartItem.className = 'cart-item';
+                const picture = item.picture ? item.picture : fallbackImage;
+                cartItem.innerHTML = `
+                    <div class="flex flex-col w-full">
+                        <div class="flex items-center">
+                            <img src="${picture}" alt="${item.title}" onerror="this.src='${fallbackImage}'; console.warn('Failed to load cart image: ${picture}');">
+                            <span class="title">${item.title}</span>
+                            <div class="quantity-controls">
+                                <button onclick="updateQuantity('${item.title}', -1)">-</button>
+                                <input 
+                                    type="number" 
+                                    value="${item.quantity}" 
+                                    min="1" 
+                                    class="w-12 text-center border border-gray-200 rounded-md mx-1 font-poppins text-sm"
+                                    onchange="updateQuantityDirectly('${item.title}', this.value)"
+                                    onkeyup="this.value = this.value.replace(/[^0-9]/g, '')"
+                                >
+                                <button onclick="updateQuantity('${item.title}', 1)">+</button>
+                            </div>
+                            <span class="price">₱${(item.price * item.quantity).toFixed(2)}</span>
+                        </div>
+                        <div class="mt-2 ml-[60px]">
+                            <button onclick="toggleItemComment('${item.title}')" class="text-[#ff6600] text-sm hover:text-[#ff6600] flex items-center gap-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                                </svg>
+                                ${item.comment ? 'Edit Note' : 'Add Note'}
+                            </button>
+                            <div id="comment-${item.title.replace(/\s+/g, '-')}" class="hidden mt-1">
+                                <textarea 
+                                    class="w-full p-2 border border-[#E1E1E1] rounded-[5px] font-roboto text-[12px] text-[#333333] focus:outline-none focus:border-[#ff6600] resize-none"
+                                    rows="2"
+                                    placeholder="Add special instructions for this item..."
+                                    onchange="updateItemComment('${item.title}', this.value)"
+                                >${item.comment}</textarea>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                cartItemsContainer.appendChild(cartItem);
+            });
+
+            cartCount.textContent = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+            totalEl.textContent = `₱${total.toFixed(2)}`;
+
+            // Close cart if empty
+            if (cartItems.length === 0) {
+                closeCart();
+            }
+
+            // Enable/disable place order button based only on cart contents
+            placeOrderBtn.disabled = cartItems.length === 0;
+        } catch (error) {
+            console.error('Error updating cart display:', error);
+        } finally {
+            isUpdatingCart = false;
+        }
+    }
+
+    // Add new function to handle direct quantity updates
+    function updateQuantityDirectly(title, value) {
+        const quantity = parseInt(value) || 0;
+        const item = cartItems.find(item => item.title === title);
+        if (item) {
+            if (quantity <= 0) {
+                cartItems = cartItems.filter(i => i.title !== title);
+            } else {
+                item.quantity = quantity;
+            }
+            updateCartDisplay();
+        }
+    }
+
+    // Update placeOrder function
+    function placeOrder() {
+        const orderData = {
+            cartItems: cartItems,
+            total: parseFloat(document.getElementById('total').textContent.replace('₱', '')),
+            orderType: 'Dine In',
+            paymentMethod: 'Cash',
+            created_at: new Date().toISOString()
+        };
+
+        // Make API call to place order
+        fetch('/api/place_order', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(orderData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Show success message
+            Swal.fire({
+                title: 'Order Placed Successfully!',
+                icon: 'success',
+                showConfirmButton: true,
+                confirmButtonText: 'OK',
+                showCloseButton: true
+            });
+
+            // Clear cart
+            cartItems = [];
+            updateCartDisplay();
+        })
+        .catch(error => {
+            console.error('Error placing order:', error);
+            Swal.fire({
+                title: 'Error',
+                text: 'Failed to place order. Please try again.',
+                icon: 'error',
+                confirmButtonText: 'OK'
+            });
+        });
+    }
+
+    // Add functions for handling item comments
+    function toggleItemComment(itemTitle) {
+        const commentId = `comment-${itemTitle.replace(/\s+/g, '-')}`;
+        const commentContainer = document.getElementById(commentId);
+        commentContainer.classList.toggle('hidden');
+    }
+
+    function updateItemComment(itemTitle, comment) {
+        const item = cartItems.find(item => item.title === itemTitle);
+        if (item) {
+            item.comment = comment;
+        }
+    }
+
+    // Auto-activate "All menu" on page load
+    document.addEventListener('DOMContentLoaded', () => {
+        const allMenuCard = document.querySelector('.category-card');
+        if (allMenuCard) {
+            allMenuCard.classList.add('category-active');
+            displayMenuItems('All menu');
+        }
+        updateCartCount();
+    }, { once: true }); // Ensure listener runs only once
+
+    // Update cart toggle functionality
+    function toggleCart() {
+        const cartContainer = document.getElementById('cartContainer');
+        const cartOverlay = document.getElementById('cartOverlay');
+        
+        if (cartContainer.classList.contains('show')) {
+            closeCart();
+        } else {
+            cartContainer.classList.add('show');
+            cartOverlay.classList.add('show');
+        }
+    }
+
+    // Add close cart functionality
+    function closeCart() {
+        const cartContainer = document.getElementById('cartContainer');
+        const cartOverlay = document.getElementById('cartOverlay');
+        
+        cartContainer.classList.remove('show');
+        cartOverlay.classList.remove('show');
+    }
+
+    // Update cart count display
+    function updateCartCount() {
+        const cartCount = document.getElementById('cartToggleCount');
+        const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+        cartCount.textContent = totalItems;
+    }
+
+    // Add keyboard event listener for Escape key
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+            closeCart();
+        }
+    });
+
+    // Add search functionality
+    function searchFood(searchTerm) {
+        const menuCards = document.querySelectorAll('.menu-card');
+        const noResultsDiv = document.getElementById('no-results');
+        let hasResults = false;
+
+        // Remove existing highlights
+        menuCards.forEach(card => {
+            card.classList.remove('highlighted');
+        });
+
+        if (searchTerm.trim() === '') {
+            menuCards.forEach(card => card.style.display = '');
+            if (noResultsDiv) noResultsDiv.remove();
+            return;
+        }
+
+        searchTerm = searchTerm.toLowerCase();
+
+        menuCards.forEach(card => {
+            const title = card.querySelector('.title').textContent.toLowerCase();
+            const desc = card.querySelector('.desc').textContent.toLowerCase();
+            
+            if (title.includes(searchTerm) || desc.includes(searchTerm)) {
+                card.style.display = '';
+                card.classList.add('highlighted');
+                hasResults = true;
+            } else {
+                card.style.display = 'none';
+            }
+        });
+
+        // Show no results message
+        if (!hasResults) {
+            if (!noResultsDiv) {
+                const newNoResults = document.createElement('div');
+                newNoResults.id = 'no-results';
+                newNoResults.className = 'no-results';
+                newNoResults.innerHTML = 'No food items found matching your search';
+                document.getElementById('menu-items').appendChild(newNoResults);
+            }
+        } else if (noResultsDiv) {
+            noResultsDiv.remove();
+        }
+    }
+</script>
+{% endblock %}

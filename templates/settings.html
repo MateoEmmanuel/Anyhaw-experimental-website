@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Settings{% endblock %}
+{% block content %}
+<h1 class="text-3xl font-bold text-center my-8 text-[#025724]">Settings</h1>
+<div class="flex justify-center">
+    <div class="bg-white shadow-lg rounded-lg p-6 max-w-md w-full">
+        <p class="text-gray-600">Configure your application settings.</p>
+        <div class="mt-4">
+            <label class="block text-[#025724]"><input type="checkbox" class="mr-2"> Enable Notifications</label>
+            <label class="block text-[#025724]"><input type="checkbox" class="mr-2"> Dark Mode</label>
+        </div>
+    </div>
+</div>
+{% endblock %}
