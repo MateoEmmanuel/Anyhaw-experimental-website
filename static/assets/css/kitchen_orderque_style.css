@@ -26,12 +26,19 @@ body, html {
 
     .main-section {
         background-image: url("../images/background.png");
+        background-color: rgba(180, 169, 154, 0.9); /* 75% transparent #fff4e7 */
         background-size: cover;
         background-position: center;
         background-repeat: no-repeat;
         width: 100vw;
         height: 100vh;
         display: flex;
+        box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+        overflow-y: auto;
+        max-height: 91vh; /* Prevents overflow */
+        scroll-padding-bottom: 100px;  /* ensures scroll snaps show last content */
     }
 
     .logo-title img {
@@ -63,66 +70,23 @@ body, html {
     overflow: hidden;
 }
 
-/* Sidebar Menu Styling remains the same */
-.sidebar {
-    width: 10%; /* takes 25% of main-section */
-    min-width: 150px; /* optional: don’t get too small */
-    height: 100%; /* Ensures it stretches full height of .main-section */
-    background-color: #ff6600c7;
-    padding: 20px 15px;
-    box-shadow: 2px 0 5px #ff66002f;
-    overflow-y: auto;       /* Enables vertical scrolling */
-    overflow-x: hidden;     /* Prevents horizontal scroll */
-    
+.main-content {
+  flex: 1; /* take all remaining horizontal space */
+  box-sizing: border-box;
+  background-color: rgba(180, 169, 154, 0.9); /* 75% transparent #fff4e7 */
+  color: rgb(32, 11, 11);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  max-height: 91vh; /* Prevents overflow */
+  scroll-padding-bottom: 100px;  /* ensures scroll snaps show last content */
 }
 
-.sidebar .options {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-}
-
-.sidebar .options-item > a {
-    color: #fff;
-    text-decoration: none;
-    font-weight: bold;
-    display: block;
-    padding: 10px;
-    border-radius: 4px;
-    transition: background-color 0.3s ease;
-    cursor: pointer;
-    border-top: 1px solid rgba(0, 0, 0, 0.6);
-    border-bottom: 1px solid rgba(0, 0, 0, 0.6);
-    margin: 10px 0;
-    padding: 5px 0;
-}
-
-.sidebar .options-item > a:hover {
-    background-color: rgba(255, 255, 255, 0.1);
-}
-
-.sidebar .sub-options {
-    display: none;
-    list-style: none;
-    padding-left: 15px;
-    margin-top: 5px;
-}
-
-.sidebar .sub-options li a {
-    display: block;
-    padding: 8px;
-    color: #ffffff;
-    text-decoration: none;
-    border-radius: 4px;
-}
-
-.sidebar .sub-options li a:hover {
-    background-color: rgba(255, 255, 255, 0.1);
-    color: #fff;
-}
-
-.sidebar .options-item.active .sub-options {
-    display: block;
+.main-content-inner {
+  flex: 1;
+  overflow-y: auto; /* scroll inside */
+  overflow-x: hidden;
+  padding: 15px;
 }
 
 .content {
@@ -236,25 +200,6 @@ body, html {
         left: 50%;
         transform: translate(-50%, -50%);
     }
-
-.main-content {
-  flex: 1; /* take all remaining horizontal space */
-  box-sizing: border-box;
-  background-color: rgba(180, 169, 154, 0.9); /* 75% transparent #fff4e7 */
-  color: rgb(32, 11, 11);
-  display: flex;
-  flex-direction: column;
-  overflow-y: auto;
-  max-height: 91vh; /* Prevents overflow */
-  scroll-padding-bottom: 100px;  /* ensures scroll snaps show last content */
-}
-
-.main-content-inner {
-  flex: 1;
-  overflow-y: auto; /* scroll inside */
-  overflow-x: hidden;
-  padding: 15px;
-}
 
 .order-card {
     border: 1px solid #ccc;

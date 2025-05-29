@@ -23,7 +23,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     document.getElementById('Home_btn').addEventListener('click', function () {
-        window.location.href = '/backend/cashier/kitchen_loader';
+        window.location.href = '/backend/kitchen/kitchen_loader';
     });
 
     function fetchOrdersLive() {

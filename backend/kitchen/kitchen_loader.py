@@ -3,13 +3,13 @@ from backend.dbconnection import create_connection
 import pymysql
 import io
 
-cashier_bp = Blueprint('cashier_bp', __name__)
+kitchen_bp = Blueprint('kitchen_bp', __name__)
 
-@cashier_bp.route('/cashier_loader')
-def cashier_loader():
+@kitchen_bp.route('/kitchen_loader')
+def kitchen_loader():
     return render_template('kitchen_lobby.html')
 
-@cashier_bp.route('/profile_pic')
+@kitchen_bp.route('/profile_pic')
 def profile_pic():
     user_id = session.get('user_id')
     user_role = session.get('role')
@@ -41,7 +41,7 @@ def profile_pic():
         if conn: conn.close()
 
 
-@cashier_bp.route('/get_username')
+@kitchen_bp.route('/get_username')
 def get_username():
     user_id = session.get('user_id')
     role = session.get('role')

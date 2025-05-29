@@ -1,10 +1,10 @@
 from flask import Blueprint, render_template, request, jsonify
 from backend.dbconnection import create_connection
 
-kitchen_orderqueue_bp = Blueprint('kitchen_orderqueue', __name__)
+kitchen_orderqueue_bp = Blueprint('kitchen_orderqueue_loader', __name__)
 
 @kitchen_orderqueue_bp.route('/kitchen_order_queue_loader')
-def order_queue_loader():
+def kitchen_order_queue_loader():
     conn = create_connection()
     cursor = conn.cursor(dictionary=True)
 

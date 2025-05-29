@@ -11,28 +11,22 @@
 <body>
     <header>
         <div class="logo-title">
-            <a href="/backend/cashier/kitchen_loader">
+            <a href="/backend/kitchen/kitchen_loader">
                 <img src="{{ url_for('static', filename='assets/images/navbar_logo.png') }}" alt="Any-Haw Logo">
             </a>
         </div>
         <nav>
-            <a href="/backend/cashier/kitchen_loader" id="Home_btn">HOME</a>  <!-- ✅ CORRECT -->
-            <a href="#" id="Fullscreen_btn" onclick="event.preventDefault(); document.documentElement.requestFullscreen();">🔳 Fullscreen</a>
+            <a href="/backend/kitchen/kitchen_loader" id="Home_btn">HOME</a>  <!-- ✅ CORRECT -->
+            <a href="#" id="Fullscreen_btn" onclick="event.preventDefault(); document.documentElement.requestFullscreen();">Fullscreen</a>
         </nav>
     </header>
         <!-- kitchen_orders.html -->
         <div class="main-section">
-            <div class="sidebar">
-                <ul class="options">
-                    <li class="options-item"><a href="#">Kitchen Panel</a></li>
-                </ul>
-            </div>
             <div class="main-content">
                 <div class="main-content-inner">
-                    <h2 style="color:#fff">Order Queue</h2>
                     <div style="display: flex; gap: 30px;">
                         <!-- Preparing Orders Column -->
-                        <div style="flex: 1; background-color: #a36200; border-radius: 10px; padding: 15px;">
+                        <div style="flex: 1; background-color: #a3620092; border-radius: 10px; padding: 15px; overflow-y: auto;">
                             <h3 style="color:#fff; text-align:center;">Preparing</h3>
                             {% if preparing_orders %}
                                 {% for order in preparing_orders %}
@@ -54,7 +48,7 @@
                         </div>
 
                         <!-- Ready to Serve Column -->
-                        <div style="flex: 1; background-color: #a36200; border-radius: 10px; padding: 15px;">
+                        <div style="flex: 1; background-color: #a3620092; border-radius: 10px; padding: 15px; overflow-y: auto;">
                             <h3 style="color:#fff; text-align:center;">Ready to Serve</h3>
                             {% if serving_orders %}
                                 {% for order in serving_orders %}

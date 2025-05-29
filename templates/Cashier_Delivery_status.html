@@ -97,7 +97,7 @@
                                             <div class="circle {{ 'active' if statuses.index(status) <= statuses.index(order.order_status) else '' }}"></div>
                                             <p class="step-label">{{ status.title() }}</p>
                                         </div>
-                                    {% endfor %}
+                                    {% endfor %}    
                                 </div>
 
                                 {% if order.order_status == 'delivered' %}

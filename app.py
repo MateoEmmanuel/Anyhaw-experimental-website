@@ -31,6 +31,10 @@ from backend.cashier.cashier_takeout_history import cashier_takeout_history_bp
 from backend.cashier.cashier_delivery_history import cashier_delivery_history_bp
 from backend.cashier.payment_loader_delivery import cashier_payment_delivery_bp
 from backend.cashier.payment_delivery_payment_loader import cashier_delivery_logging_bp
+from backend.kitchen.kitchen_loader import kitchen_bp
+from backend.kitchen.kitchen_orderque_loader import kitchen_orderqueue_bp
+from backend.kitchen.kitchen_orderque_loader_public import kitchen_public_order_queue_loader_bp
+from backend.kitchen.kitchen_settings import kitchen_settings_bp
 
 app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY")
@@ -58,6 +62,11 @@ app.register_blueprint(cashier_delivery_history_bp, url_prefix="/backend/cashier
 app.register_blueprint(cashier_payment_delivery_bp, url_prefix="/backend/cashier")
 app.register_blueprint(cashier_delivery_logging_bp, url_prefix="/backend/cashier")
 
+app.register_blueprint(kitchen_bp, url_prefix="/backend/kitchen")
+app.register_blueprint(kitchen_orderqueue_bp, url_prefix="/backend/kitchen")
+app.register_blueprint(kitchen_public_order_queue_loader_bp, url_prefix="/backend/kitchen")
+app.register_blueprint(kitchen_settings_bp, url_prefix="/backend/kitchen", methods=["POST"])
+
 @app.route("/")
 def Index_home():
     # Check if a user is already logged in by checking session
@@ -73,7 +82,7 @@ def Index_home():
         elif role == "Cashier":
             return redirect(url_for("cashier_bp.cashier_loader"))  # cashier main UI lobby
         elif role == "kitchen":
-            return redirect(url_for("kitchen_ui")) # kitchen main UI lobby
+            return redirect(url_for("kitchen_bp.kitchen_loader")) # kitchen main UI lobby
         elif role == "delivery":
             return redirect(url_for("delivery_ui")) # delivery main UI lobby
         else:

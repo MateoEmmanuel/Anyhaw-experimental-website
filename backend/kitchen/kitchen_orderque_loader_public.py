@@ -1,9 +1,9 @@
 from flask import Blueprint, render_template, request, jsonify
 from backend.dbconnection import create_connection
 
-kitchen_orderqueue_bp = Blueprint('kitchen_orderqueue', __name__)
+kitchen_public_order_queue_loader_bp = Blueprint('kitchen_public_order_queue_loader', __name__)
 
-@kitchen_orderqueue_bp.route('/kitchen_public_order_queue_loader')
+@kitchen_public_order_queue_loader_bp.route('/kitchen_public_order_queue_loader')
 def kitchen_public_order_queue_loader():
     conn = create_connection()
     cursor = conn.cursor(dictionary=True)
@@ -136,7 +136,7 @@ def kitchen_public_order_queue_loader():
         conn.close()
 
 
-@kitchen_orderqueue_bp.route('/update_order_status', methods=['POST'])
+@kitchen_public_order_queue_loader_bp.route('/update_order_status', methods=['POST'])
 def update_order_status():
     data = request.get_json()
     order_id = data.get('order_id')
@@ -181,7 +181,7 @@ def update_order_status():
 
     
 
-@kitchen_orderqueue_bp.route('/update_item_prep_status', methods=['POST'])
+@kitchen_public_order_queue_loader_bp.route('/update_item_prep_status', methods=['POST'])
 def update_item_prep_status():
     data = request.get_json()
     order_list_id = data.get('order_list_id')
@@ -210,7 +210,7 @@ def update_item_prep_status():
         return jsonify(success=False, message=str(e)), 500
 
 
-@kitchen_orderqueue_bp.route('/api/kitchen_order_data')
+@kitchen_public_order_queue_loader_bp.route('/api/kitchen_order_data')
 def api_kitchen_order_data():
     conn = create_connection()
     cursor = conn.cursor(dictionary=True)

@@ -145,7 +145,7 @@ document.getElementById("loginBtn").addEventListener("click", async function (e)
                     window.location.href = "/backend/cashier/cashier_loader";
                     break;
                 case "Kitchen":
-                    window.location.href = "/kitchen_ui";
+                    window.location.href = "/backend/kitchen/kitchen_loader";
                     break;
                 case "Delivery":
                     window.location.href = "/delivery_ui";

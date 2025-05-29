@@ -127,7 +127,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         break;
 
                     case "kitchen":
-                        window.location.href = "/backend/cashier/kitchen_loader";
+                        window.location.href = "/backend/kitchen/kitchen_loader";
                         break;
                     case "delivery":
                         window.location.href = "/delivery_ui";
