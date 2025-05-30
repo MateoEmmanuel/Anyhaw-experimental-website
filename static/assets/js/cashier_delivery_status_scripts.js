@@ -105,10 +105,14 @@ document.addEventListener('DOMContentLoaded', function () {
             window.location.href = `/backend/cashier/payment_delivery_payment_module/${orderId}`;
     }
 
+    document.getElementById('dineinhistory_btn').addEventListener('click', function () {
+        window.location.href = '/backend/cashier/cashier_dinein_history_loader';
+    });
+    
     document.getElementById('takeouthistory_btn').addEventListener('click', function () {
-    window.location.href = '/backend/cashier/cashier_takeout_history_loader';
-});
-
-document.getElementById('deliveryhistory_btn').addEventListener('click', function () {
-    window.location.href = '/backend/cashier/cashier_delivery_history_loader';
-});
+        window.location.href = '/backend/cashier/cashier_takeout_history_loader';
+    });
+    
+    document.getElementById('deliveryhistory_btn').addEventListener('click', function () {
+        window.location.href = '/backend/cashier/cashier_delivery_history_loader';
+    });

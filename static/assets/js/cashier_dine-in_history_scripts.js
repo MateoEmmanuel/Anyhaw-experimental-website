@@ -21,6 +21,7 @@ function hideAllUI() {
 }
 
 document.addEventListener('DOMContentLoaded', function () {
+    print("cashier_dinein_history.html loaded")
     const menuItems = document.querySelectorAll('.options-item');
     const testingBtn = document.getElementById('testing_btn');
     const testingUI = document.getElementById('testingUI_interface');
