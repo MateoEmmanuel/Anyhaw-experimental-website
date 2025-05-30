@@ -6,8 +6,13 @@ load_dotenv("C:/xampp/htdocs/new_anyhaw_kim/new_anyhaw/static/assets/localfile/r
 print("EMAIL_ADDRESS:", os.getenv("EMAIL_ADDRESS"))
 print("EMAIL_PASSWORD:", os.getenv("EMAIL_PASSWORD"))
 
-from flask import Flask, redirect, render_template, session, url_for
+from flask import Flask, redirect, render_template, session, url_for, request, jsonify
 from flask_cors import CORS
+from functools import wraps
+from datetime import datetime
+
+# Import the organized menu data
+from organized_menu import best_sellers, others, drinks, combo_meals, desserts, sizzling_meal, silog, additional_menu_items
 
 from backend.login import login
 from backend.register import register_bp
@@ -35,10 +40,123 @@ from backend.kitchen.kitchen_loader import kitchen_bp
 from backend.kitchen.kitchen_orderque_loader import kitchen_orderqueue_bp
 from backend.kitchen.kitchen_orderque_loader_public import kitchen_public_order_queue_loader_bp
 from backend.kitchen.kitchen_settings import kitchen_settings_bp
+from backend.admin.admin_loader import admin_bp
+from backend.admin.admin_settings import admin_settings_bp
+from backend.staff.staff_routes import staff_bp
+from backend.delivery.delivery_routes import delivery_bp
 
 app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY")
 CORS(app)
+
+# In-memory storage for orders
+orders_storage = []
+
+# Function to get menu categories directly from app.py
+def get_categories():
+    # Use the imported menu data from organized_menu.py
+    categories = [
+        {
+            "title": "Best Sellers",
+            "icon": url_for('static', filename='assets/images/categoriesIcon/maincourse.png'),
+            "menus": best_sellers
+        },
+        {
+            "title": "Others",
+            "icon": url_for('static', filename='assets/images/categoriesIcon/maincourse.png'),
+            "menus": others
+        },
+        {
+            "title": "Drinks",
+            "icon": url_for('static', filename='assets/images/categoriesIcon/milktea.png'),
+            "menus": drinks
+        },
+        {
+            "title": "Combo Meals",
+            "icon": url_for('static', filename='assets/images/categoriesIcon/maincourse.png'),
+            "menus": combo_meals
+        },
+        {
+            "title": "Desserts",
+            "icon": url_for('static', filename='assets/images/categoriesIcon/frappe.png'),
+            "menus": desserts
+        },
+        {
+            "title": "Sizzling Meal",
+            "icon": url_for('static', filename='assets/images/categoriesIcon/maincourse.png'),
+            "menus": sizzling_meal
+        },
+        {
+            "title": "Silog",
+            "icon": url_for('static', filename='assets/images/categoriesIcon/maincourse.png'),
+            "menus": silog
+        }
+    ]
+    
+    # Create "All menu" category by collecting all menus from other categories
+    all_menus = []
+    for category in categories:
+        all_menus.extend(category["menus"])
+    
+    # Remove duplicates by menu_title and sort alphabetically
+    unique_menus = {menu["menu_title"]: menu for menu in all_menus}
+    all_menus = sorted(unique_menus.values(), key=lambda x: x["menu_title"])
+
+    # Insert "All menu" category at the beginning
+    categories.insert(0, {
+        "title": "All menu",
+        "icon": url_for('static', filename='assets/images/categoriesIcon/allmenu.png'),
+        "menus": all_menus
+    })
+    
+    return categories
+
+# API route for placing orders
+@app.route('/api/place_order', methods=['POST'])
+def place_order():
+    data = request.get_json()
+    if not data:
+        return jsonify({'error': 'No data provided'}), 400
+
+    required_fields = ['orderType', 'paymentMethod', 'cartItems', 'total', 'created_at']
+    for field in required_fields:
+        if field not in data:
+            return jsonify({'error': f'Missing field: {field}'}), 400
+
+    # Validate cartItems is a list
+    if not isinstance(data.get('cartItems'), list):
+        return jsonify({'error': 'cartItems must be a list'}), 400
+
+    # Generate a new order ID
+    new_id = f"#{(max(int(o['id'].lstrip('#')) for o in orders_storage) + 1) if orders_storage else 51240}"
+    
+    # Create the new order
+    new_order = {
+        "id": new_id,
+        "customer_table": "Table N/A" if data['orderType'].lower() == 'to-go' else f"Table {len(orders_storage) + 1}",
+        "status": "waiting",
+        "order_type": data['orderType'].capitalize(),
+        "items": [
+            {
+                "ordername": item.get('title', 'Unknown'),
+                "quantity": int(item.get('quantity', 0)),
+                "price": float(item.get('price', 0.0)),
+                "image": item.get('picture', '')
+            } for item in data['cartItems']
+        ],
+        "total": float(data.get('total', 0.0)),
+        "created_at": datetime.fromisoformat(data['created_at']).isoformat(),
+        "total_items": sum(int(item.get('quantity', 0)) for item in data['cartItems'])
+    }
+
+    # Add customer info if provided
+    if 'customerInfo' in data:
+        new_order['customer_info'] = data['customerInfo']
+
+    # Add the new order to storage
+    orders_storage.append(new_order)
+    print(f"New order added: {new_order}")  # Debug output
+    return jsonify({'message': 'Order placed successfully!', 'order_id': new_id}), 200
 
 # Register blueprints
 app.register_blueprint(register_bp, url_prefix="/backend")
@@ -67,6 +185,32 @@ app.register_blueprint(kitchen_orderqueue_bp, url_prefix="/backend/kitchen")
 app.register_blueprint(kitchen_public_order_queue_loader_bp, url_prefix="/backend/kitchen")
 app.register_blueprint(kitchen_settings_bp, url_prefix="/backend/kitchen", methods=["POST"])
 
+app.register_blueprint(admin_bp, url_prefix="/backend/admin")
+app.register_blueprint(admin_settings_bp, url_prefix="/backend/admin", methods=["POST"])
+
+# Register new blueprints for staff and delivery
+app.register_blueprint(staff_bp, url_prefix="/backend/staff")
+app.register_blueprint(delivery_bp, url_prefix="/backend/delivery")
+
+# Security middleware
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in session:
+            return redirect(url_for('Index_home'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+def role_required(allowed_roles):
+    def decorator(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            if 'role' not in session or session['role'] not in allowed_roles:
+                return jsonify({"error": "Unauthorized"}), 403
+            return f(*args, **kwargs)
+        return decorated_function
+    return decorator
+
 @app.route("/")
 def Index_home():
     # Check if a user is already logged in by checking session
@@ -74,7 +218,7 @@ def Index_home():
         role = session['role']
         # Redirect to role-specific UI
         if role == "admin":
-            return redirect(url_for("admin_ui")) # admin main UI lobby
+            return redirect(url_for("admin_bp.admin_loader")) # admin main UI lobby
         elif role == "customer": 
             return redirect(url_for("customer_ui")) # customer main UI lobby
         elif role == "staff":
@@ -96,15 +240,43 @@ def Index_home():
 def admin_ui():
     # Check if user is authenticated and has admin role
     if 'user_id' in session and 'role' in session and session['role'] == 'admin':
-        return render_template("admin_ui.html")
+        return redirect(url_for("admin_bp.admin_loader"))
     else:
         # Redirect to login if not authenticated or not an admin
         return redirect(url_for("Index_home"))
 
+@app.route("/staff_ui")
+@login_required
+@role_required(['staff'])
+def staff_ui():
+    return render_template("staff_ui.html")
+
+@app.route("/delivery_ui")
+@login_required
+@role_required(['delivery'])
+def delivery_ui():
+    return render_template("delivery_ui.html")
+
 @app.route("/customer_ui")
+@login_required
+@role_required(['customer'])
 def customer_ui():
-    return render_template("customer_ui.html")
+    categories = get_categories()
+    return render_template("menu.html", categories=categories)
+
+@app.route("/menu")
+def menu():
+    categories = get_categories()
+    return render_template("menu.html", categories=categories)
+
+# Error handlers
+@app.errorhandler(404)
+def page_not_found(e):
+    return render_template('index.html'), 404
+
+@app.errorhandler(500)
+def internal_server_error(e):
+    return jsonify({"error": "Internal server error"}), 500
 
 if __name__ == "__main__":
-    app.run(debug=True)
-    
+    app.run(debug=True) 

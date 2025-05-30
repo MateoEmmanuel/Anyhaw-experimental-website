@@ -90,7 +90,6 @@ def get_user_account_info():
             conn.close()
 
 
-
 @kitchen_settings_bp.route('/change_password', methods=['POST'])
 def change_password():
     conn = None
@@ -177,4 +176,4 @@ def update_profile_picture():
 
     finally:
         if cursor: cursor.close()
-        if conn: conn.close()
+        if conn: conn.close() 

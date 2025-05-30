@@ -10,6 +10,90 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='assets/images/navbar_logo.png') }}">
     <script src="{{ url_for('static', filename='assets/js/admin_scripts.js') }}" defer></script>
+    <style>
+        /* Profile Picture Consistency Fixes */
+        
+        /* Header profile picture - make it circular and consistent */
+        .user-profile .profile-pic-placeholder {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 2px solid #ddd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #f5f5f5;
+        }
+        
+        .user-profile .profile-pic {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center;
+        }
+        
+        /* Modal profile picture preview - consistent sizing */
+        .profile-pic-preview {
+            width: 150px;
+            height: 150px;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 2px solid #ddd;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #f5f5f5;
+        }
+        
+        .profile-pic-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center;
+        }
+        
+        /* Ensure consistent aspect ratios across all profile pictures */
+        .profile-pic-wrapper {
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .upload-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            align-items: center;
+        }
+        
+        .upload-controls input[type="file"] {
+            margin-bottom: 10px;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            width: 200px;
+        }
+        
+        /* Optional: Add hover effect for header profile pic */
+        .user-profile .profile-pic-placeholder:hover {
+            border-color: #007bff;
+            cursor: pointer;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .user-profile .profile-pic-placeholder {
+                width: 35px;
+                height: 35px;
+            }
+            
+            .profile-pic-preview {
+                width: 120px;
+                height: 120px;
+            }
+        }
+    </style>
 </head>
 <body>
     <header>
@@ -25,16 +109,17 @@
             <div class="user-section">
                 <div class="user-profile">
                     <div class="profile-pic-placeholder">
-                        <i class="fas fa-user-circle"></i>
+                        <img src="{{ url_for('admin_bp.profile_pic') }}" alt="Profile Picture" class="profile-pic">
                     </div>
-                    <span class="username">Admin</span>
+                    <span id="username" class="username">Loading...</span>
                 </div>
                 <div class="settings-dropdown">
                     <button class="settings-btn" id="settingsIcon"><i class="fas fa-cog"></i></button>
                     <div class="settings-panel" id="settingsPanel">
-                        <a href="#" id="profileLink"><i class="fas fa-user"></i> Profile</a>
-                        <a href="#" id="settingsLink"><i class="fas fa-cog"></i> Settings</a>
-                        <a href="/logout" id="logoutLink"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                        <a href="#" id="updateprofilepic_button"><i class="fas fa-user"></i> Profile Picture</a>
+                        <a href="#" id="editaccount_button"><i class="fas fa-edit"></i> Account Info</a>
+                        <a href="#" id="changepassword_button"><i class="fas fa-key"></i> Change Password</a>
+                        <a href="#" id="logoutLink"><i class="fas fa-sign-out-alt"></i> Logout</a>
                     </div>
                 </div>
             </div>
@@ -47,25 +132,22 @@
     <div id="overlay" class="overlay" style="display: none;"></div>
 
     <!-- Dashboard UI -->
-    <div id="dashboardUI" class="floating-ui admin-panel">
+    <div id="dashboardUI" class="floating-ui admin-panel" style="display: none;">
         <div class="floating-inner">
-            <h2>Admin Dashboard</h2>
+            <h2>Dashboard</h2>
+            <p>Welcome to the admin dashboard!</p>
             <div class="dashboard-stats">
                 <div class="stat-card">
                     <h3>Total Users</h3>
-                    <p class="stat-number">54</p>
-                </div>
-                <div class="stat-card">
-                    <h3>Total Orders</h3>
-                    <p class="stat-number">128</p>
+                    <p>5</p>
                 </div>
                 <div class="stat-card">
                     <h3>Menu Items</h3>
-                    <p class="stat-number">32</p>
+                    <p>12</p>
                 </div>
                 <div class="stat-card">
-                    <h3>Revenue</h3>
-                    <p class="stat-number">₱24,580</p>
+                    <h3>Active Orders</h3>
+                    <p>8</p>
                 </div>
             </div>
         </div>
@@ -209,6 +291,97 @@
                 </div>
             </form>
             <button id="addMenuItemCloseBtn" class="close-btn">X</button>
+        </div>
+    </div>
+
+    <!-- Floating Edit Account Info UI -->
+    <div id="editaccountUI" class="floating-ui" style="display: none;">
+        <div class="floating-inner">
+            <h2>Account Info</h2>
+
+            <div class="accountusername-group">
+                <h3>Username:</h3>
+                <input type="text" id="username_txt" placeholder="Username" required disabled class="custom-disabled">
+            </div>
+
+            <div class="accountname-group">
+                <h3>Name:</h3>
+                <input type="text" id="firstname_txt" placeholder="Firstname" required disabled class="custom-disabled">
+                <input type="text" id="middlename_txt" placeholder="Middlename" required disabled class="custom-disabled">
+                <input type="text" id="lastname_txt" placeholder="Lastname" required disabled class="custom-disabled">
+            </div>
+
+            <div class="accountposition-group">
+                <h3>Position:</h3>
+                <input type="text" id="position_txt" placeholder="Position" disabled class="custom-disabled">
+            </div>
+
+            <div class="accountemail-group">
+                <h3>Email:</h3>
+                <input type="text" id="email_txt" placeholder="Email" required disabled class="user_email">
+            </div>
+
+            <div class="accountcontactnumber-group">
+                <h3>Contact Number:</h3>
+                <input type="text" id="contactnumber_txt" placeholder="Contact Number" required disabled class="custom-disabled">
+            </div>
+
+            <div class="button-row">
+                <button id="cancelBtn" class="cancel-btn" style="display: none;">Cancel</button>
+                <button id="editupdate" class="enablesave-btn">Edit Account</button>
+            </div>
+
+            <button id="closeBtn" class="close-btn">X</button>
+        </div>
+    </div>
+
+    <!-- Floating Update Password UI -->
+    <div id="updatepasswordUI" class="floating-ui" style="display: none;">
+        <div class="floating-inner">
+            <h2>Change Password</h2>
+            <form id="updatepassword_form">
+                <div class="password-field">
+                    <div class="old_password-group">
+                        <h3>Old Password:</h3>
+                        <input type="password" id="old_password_txt" placeholder="Old Password" required class="password-field">
+                    </div>
+                    <div class="new_password-group">
+                        <h3>New Password:</h3>
+                        <input type="password" id="updatepassword_input" name="password" placeholder="Password" required>
+                        <ul id="passwordRules" class="rules-list">
+                            <li id="lengthRule">❌ 8–12 characters</li>
+                            <li id="uppercaseRule">❌ At least one uppercase letter</li>
+                            <li id="lowercaseRule">❌ At least one lowercase letter</li>
+                            <li id="numberRule">❌ At least one number</li>
+                            <li id="specialCharRule">❌ At least one special character</li>
+                        </ul>
+                    </div>
+                </div>
+            </form>
+            <div class="button-row">
+                <div class="forgot-password">
+                    <a href="#" id="forgotPasswordLink">Forgot Password?</a>
+                </div>
+                <button id="updatepassword_btn" class="updatepassword-btn">Update Password</button>
+            </div>
+            <button id="updatecloseBtn" class="close-btn">X</button>
+        </div>
+    </div>
+
+    <!-- Floating Update Profile Picture UI -->
+    <div id="updateprofilepicUI" class="floating-ui" style="display: none;">
+        <div class="floating-inner">
+            <h2>Update Profile Picture</h2>
+            <div class="profile-pic-wrapper">
+                <div class="profile-pic-preview">
+                    <img src="{{ url_for('admin_bp.profile_pic') }}" alt="Profile Picture" id="profile_pic_preview">
+                </div>
+                <form id="updateprofilepic_form" enctype="multipart/form-data" class="upload-controls">
+                    <input type="file" id="profile_pic_input" accept="image/*" required>
+                    <button type="submit" id="updateprofilepic_btn" class="updateprofilepic-btn">Save New Profile Picture</button>
+                </form>
+                <button id="updateprofilepic_closeBtn" class="close-btn">X</button>
+            </div>
         </div>
     </div>
 </body>
